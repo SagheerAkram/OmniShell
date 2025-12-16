@@ -5,12 +5,12 @@ use chrono::Utc;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 
-use crate::crypto::{encrypt_message, decrypt_message};
+use crate::crypto::encrypt_message;
 use crate::crypto::encryption::CipherType;
 use crate::contacts::get_contact_public_key;
 use crate::error::{OmniShellError, Result};
 use crate::identity::get_keypair;
-use crate::storage::{Storage, omnishell_dir};
+use crate::storage::Storage;
 use crate::ui::output;
 use crate::config::Config;
 
@@ -120,7 +120,7 @@ pub async fn send_file(recipient: String, file_path: String, compress: bool) -> 
     // Encrypt and send metadata
     println!("{} Encrypting file metadata...", "[🔐]".cyan());
     let meta_json = serde_json::to_vec(&file_meta)?;
-    let encrypted_meta = encrypt_message(&meta_json, &shared_key, cipher.clone())?;
+    let _encrypted_meta = encrypt_message(&meta_json, &shared_key, cipher.clone())?;
     
     // Send chunks with progress
     println!("{} Transferring file...", "📤".cyan());
@@ -136,7 +136,7 @@ pub async fn send_file(recipient: String, file_path: String, compress: bool) -> 
         
         // Encrypt chunk
         let chunk_json = serde_json::to_vec(&file_chunk)?;
-        let encrypted_chunk = encrypt_message(&chunk_json, &shared_key, cipher.clone())?;
+        let _encrypted_chunk = encrypt_message(&chunk_json, &shared_key, cipher.clone())?;
         
         // Simulate network delay
         tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
@@ -213,10 +213,10 @@ pub async fn list_transfers() -> Result<()> {
         return Ok(());
     }
     
-    for (transfer_id, content, timestamp, contact) in transfers {
+    for (transfer_id, content, timestamp, contact) in &transfers {
         let file_info = String::from_utf8_lossy(&content);
         println!("{} | {}", 
-            output::format_timestamp(timestamp).bright_black(), 
+            output::format_timestamp(*timestamp).bright_black(), 
             transfer_id.bright_black()
         );
         println!("   {} ↔ @{}", file_info, contact.cyan());
@@ -230,6 +230,7 @@ pub async fn list_transfers() -> Result<()> {
 }
 
 /// Receive/accept a file transfer
+#[allow(dead_code)]
 pub async fn receive_file(transfer_id: String) -> Result<()> {
     println!("{} Receiving file with ID: {}...", "→".cyan(), transfer_id.bright_black());
     println!();

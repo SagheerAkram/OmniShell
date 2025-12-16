@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["OmniShell Contributors"]
 description = "Advanced terminal-based, peer-to-peer encrypted messaging CLI with military-grade security"
 license = "MIT"
-repository = "https://github.com/yourusername/omnishell"
+repository = "https://github.com/SagheerAkram/omnishell"
 keywords = ["encryption", "messaging", "p2p", "security", "cli"]
 categories = ["command-line-utilities", "cryptography", "network-programming"]
 
@@ -44,7 +44,7 @@ hkdf = "0.12"
 hostname = "0.3"
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "sqlite"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "macros"] }
 
 # Networking
 quinn = "0.10"  # QUIC protocol
@@ -71,10 +71,11 @@ uuid = { version = "1.6", features = ["v4", "serde"] }
 hex = "0.4"
 base64 = "0.21"
 dirs = "5.0"
+md5 = "0.7"
 
-# Tor integration (optional)
-arti-client = { version = "0.11", optional = true }
-tor-rtcompat = { version = "0.9", optional = true }
+# Tor integration removed due to dependency conflicts
+# arti-client = { version = "0.11", optional = true }
+# tor-rtcompat = { version = "0.9", optional = true }
 
 [dev-dependencies]
 tempfile = "3.8"
@@ -82,8 +83,8 @@ criterion = "0.5"
 
 [features]
 default = []
-tor = ["arti-client", "tor-rtcompat"]
-full = ["tor"]
+# tor = ["arti-client", "tor-rtcompat"]
+# full = ["tor"]
 
 [[bin]]
 name = "omnishell"

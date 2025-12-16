@@ -1,4 +1,10 @@
 // Automation & Filters
+//
+// TO ENABLE: Wire up automation commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use chrono::Utc;

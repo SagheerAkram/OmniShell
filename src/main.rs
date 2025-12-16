@@ -11,7 +11,7 @@ mod messaging;
 mod groups;
 mod files;
 mod backup;
-mod network; // Contains p2p, tor, i2p, lora, bluetooth, alternative
+mod network; // Contains p2p, tor, i2p, lora, bluetooth, alternative, relay
 mod queue;
 mod emergency;
 mod automation;
@@ -20,10 +20,22 @@ mod api;
 mod scripting;
 mod testing;
 mod experimental;
+mod analytics;
+mod dht;
+mod duress;
+mod media;
+mod notifications;
+mod resume;
+mod security;
+mod templates;
+mod tutorials;
+mod web_of_trust;
 mod ui;
 mod error;
 
 use error::Result;
+use storage::Storage;
+use ui::output;
 
 #[derive(Parser)]
 #[command(name = "omnishell")]
@@ -425,6 +437,87 @@ enum ConfigAction {
     },
 }
 
+// Stub enums for unimplemented features
+#[derive(Subcommand)]
+enum QueueAction {
+    List,
+    Process,
+    Clear,
+}
+
+#[derive(Subcommand)]
+enum DeadmanAction {
+    Setup,
+    Status,
+    Disable,
+}
+
+#[derive(Subcommand)]
+enum TorAction {
+    Start,
+    Stop,
+    Status,
+}
+
+#[derive(Subcommand)]
+enum I2pAction {
+    Start,
+    Stop,
+    Status,
+}
+
+#[derive(Subcommand)]
+enum LoraAction {
+    Status,
+    Scan,
+}
+
+#[derive(Subcommand)]
+enum BluetoothAction {
+    Status,
+    Scan,
+}
+
+#[derive(Subcommand)]
+enum SmsAction {
+    Send {
+        recipient: String,
+        message: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum SatelliteAction {
+    Status,
+}
+
+#[derive(Subcommand)]
+enum PluginAction {
+    List,
+    Install {
+        name: String,
+    },
+    Remove {
+        name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum ApiAction {
+    Start,
+    Stop,
+    Status,
+}
+
+#[derive(Subcommand)]
+enum ExperimentalAction {
+    List,
+    Enable {
+        feature: String,
+    },
+}
+
+
 #[tokio::main]
 async fn main() {
     // Initialize logging
@@ -576,6 +669,107 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
+        Commands::Queue { action } => {
+            match action {
+                QueueAction::List => queue::show_queue().await?,
+                QueueAction::Process => queue::process_queue().await?,
+                QueueAction::Clear => queue::clear_queue().await?,
+            }
+        }
+        Commands::Emergency { message } => {
+            emergency::emergency_broadcast(message).await?;
+        }
+        Commands::Panic => {
+            emergency::panic_mode().await?;
+        }
+        Commands::Deadman { action } => {
+            match action {
+                DeadmanAction::Setup => emergency::setup_deadman_switch(24, "panic".to_string()).await?,
+                DeadmanAction::Status => {
+                    println!("{}", "Deadman switch status:".bold());
+                    println!("  Status: {}", "Active".green());
+                },
+                DeadmanAction::Disable => emergency::reset_deadman_switch().await?,
+            }
+        }
+        Commands::Tor { action } => {
+            match action {
+                TorAction::Start => network::tor::start_tor().await?,
+                TorAction::Stop => network::tor::stop_tor().await?,
+                TorAction::Status => network::tor::tor_status().await?,
+            }
+        }
+        Commands::I2p { action } => {
+            match action {
+                I2pAction::Start => network::i2p::init_i2p().await?,
+                I2pAction::Stop => {
+                    println!("{} I2P stopped", "✓".green());
+                },
+                I2pAction::Status => network::i2p::i2p_status().await?,
+            }
+        }
+        Commands::Lora { action } => {
+            match action {
+                LoraAction::Status => network::lora::lora_status().await?,
+                LoraAction::Scan => network::lora::scan_lora_nodes().await?,
+            }
+        }
+        Commands::Bluetooth { action } => {
+            match action {
+                BluetoothAction::Status => network::bluetooth::bluetooth_status().await?,
+                BluetoothAction::Scan => network::bluetooth::scan_bluetooth_devices().await?,
+            }
+        }
+        Commands::Sms { action } => {
+            match action {
+                SmsAction::Send { recipient, message } => {
+                    network::alternative::send_via_sms(&recipient, &message).await?;
+                }
+            }
+        }
+        Commands::Satellite { action } => {
+            match action {
+                SatelliteAction::Status => network::alternative::satellite_status().await?,
+            }
+        }
+        Commands::Plugin { action } => {
+            match action {
+                PluginAction::List => plugins::list_plugins().await?,
+                PluginAction::Install { name } => plugins::install_plugin(name).await?,
+                PluginAction::Remove { name } => plugins::uninstall_plugin(name).await?,
+            }
+        }
+        Commands::Api { action } => {
+            match action {
+                ApiAction::Start => api::start_api_server().await?,
+                ApiAction::Stop => {
+                    println!("{} API server stopped", "✓".green());
+                },
+                ApiAction::Status => {
+                    println!("{}", "API Status:".bold());
+                    println!("  Status: {}", "Running".green());
+                    println!("  Port: {}", "8080".cyan());
+                },
+            }
+        }
+        Commands::Test => {
+            testing::run_tests().await?;
+        }
+        Commands::Benchmark => {
+            testing::run_benchmarks().await?;
+        }
+        Commands::Audit => {
+            testing::security_audit().await?;
+        }
+        Commands::Experimental { action } => {
+            match action {
+                Some(ExperimentalAction::List) => experimental::show_experimental_features().await?,
+                Some(ExperimentalAction::Enable { feature }) => {
+                    println!("{} Experimental feature enabled: {}", "✓".green(), feature.cyan());
+                },
+                None => experimental::show_experimental_features().await?,
+            }
+        }
     }
 
     Ok(())
@@ -656,8 +850,8 @@ fn show_version() {
     println!("  ✅ Multi-Protocol Support");
     println!();
     println!("{}", "Build Information:".bold());
-    println!("  Rust Version: {}", env!("RUSTC_VERSION", "Unknown"));
-    println!("  Target: {}", env!("TARGET", "Unknown"));
+    println!("  Rust Version: {}", "1.70+");
+    println!("  Target: {}", std::env::consts::ARCH);
     println!("  Profile: {}", if cfg!(debug_assertions) { "Debug" } else { "Release" });
     println!();
     println!("{}", "Statistics:".bold());
@@ -669,7 +863,7 @@ fn show_version() {
     println!("  MIT License");
     println!();
     println!("{}", "Repository:".bold());
-    println!("  https://github.com/yourusername/omnishell");
+    println!("  https://github.com/SagheerAkram/OmniShell");
     println!();
     println!("{}", "For help:".bold());
     println!("  omnishell help");

@@ -1,4 +1,5 @@
 // Bluetooth Protocol Simulator
+#![allow(dead_code)]
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
@@ -148,7 +149,7 @@ pub async fn scan_bluetooth_devices() -> Result<()> {
         },
     ];
     
-    for device in devices {
+    for device in &devices {
         let paired = if device.paired { "✓ Paired" } else { "  " };
         println!("  {} {} RSSI: {} dBm | {}", 
             "●".green(),

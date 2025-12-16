@@ -1,7 +1,19 @@
 // DHT (Distributed Hash Table) for User Discovery
+//
+// TO ENABLE: Add DHT commands to main.rs:
+// ```rust
+// /// DHT username registration
+// Dht {
+//     #[command(subcommand)]
+//     action: DhtAction,
+// },
+// ```
+// Then implement DhtAction enum and wire up these functions.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::error::Result;
 use crate::storage::Storage;

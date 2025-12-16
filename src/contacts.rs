@@ -7,7 +7,7 @@ use crate::storage::{Storage, omnishell_dir};
 use crate::ui::output;
 use dialoguer::Confirm;
 
-#[derive(Debug)]
+#[derive(Debug, sqlx::FromRow)]
 pub struct Contact {
     pub id: i64,
     pub name: String,
@@ -123,7 +123,7 @@ pub async fn list(online_only: bool) -> Result<()> {
     println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
     println!();
     
-    for contact in contacts {
+    for contact in &contacts {
         if online_only && contact.last_seen.is_none() {
             continue;
         }
@@ -367,8 +367,7 @@ async fn contact_exists(pool: &SqlitePool, name: &str) -> Result<bool> {
 }
 
 async fn get_all_contacts(pool: &SqlitePool) -> Result<Vec<Contact>> {
-    let contacts = sqlx::query_as!(
-        Contact,
+    let contacts = sqlx::query_as::<_, Contact>(
         r#"
         SELECT id, name, public_key, fingerprint, trust_level, last_seen, created_at, notes
         FROM contacts
@@ -382,15 +381,14 @@ async fn get_all_contacts(pool: &SqlitePool) -> Result<Vec<Contact>> {
 }
 
 async fn get_contact_by_name(pool: &SqlitePool, name: &str) -> Result<Contact> {
-    let contact = sqlx::query_as!(
-        Contact,
+    let contact = sqlx::query_as::<_, Contact>(
         r#"
         SELECT id, name, public_key, fingerprint, trust_level, last_seen, created_at, notes
         FROM contacts
         WHERE name = ?
-        "#,
-        name
+        "#
     )
+    .bind(name)
     .fetch_optional(pool)
     .await?
     .ok_or_else(|| OmniShellError::ContactNotFound(name.to_string()))?;

@@ -1,4 +1,4 @@
-use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use ed25519_dalek::{Signature, Signer, Verifier, VerifyingKey};
 use crate::crypto::keys::KeyPair;
 use crate::error::{OmniShellError, Result};
 
@@ -17,6 +17,11 @@ pub fn verify_signature(data: &[u8], signature_bytes: &[u8], public_key: &Verify
     public_key
         .verify(data, &signature)
         .map_err(|e| OmniShellError::Crypto(format!("Signature verification failed: {}", e)))
+}
+
+/// Alias for sign_data (for compatibility)
+pub fn sign_message(data: &[u8], keypair: &KeyPair) -> Result<Vec<u8>> {
+    Ok(sign_data(data, keypair))
 }
 
 #[cfg(test)]

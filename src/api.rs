@@ -1,8 +1,12 @@
 // REST API Server Module
+//
+// TO ENABLE: Wire up api commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 use crate::error::Result;
 use crate::storage::Storage;
@@ -152,7 +156,7 @@ pub async fn register_webhook(url: String, events: Vec<String>) -> Result<()> {
     let storage = Storage::new().await?;
     let pool = storage.pool();
     
-    let webhook_data = serde_json::json!({
+    let _webhook_data = serde_json::json!({
         "url": url,
         "events": events,
         "created_at": chrono::Utc::now().timestamp()

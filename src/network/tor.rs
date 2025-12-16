@@ -1,4 +1,5 @@
 // Tor Integration Module
+#![allow(dead_code)]
 use colored::Colorize;
 use std::process::{Command, Stdio};
 use std::fs;
@@ -303,7 +304,7 @@ pub async fn stop_tor() -> Result<()> {
 }
 
 /// Send message via Tor
-pub async fn send_via_tor(onion_address: &str, encrypted_message: &[u8]) -> Result<()> {
+pub async fn send_via_tor(onion_address: &str, _encrypted_message: &[u8]) -> Result<()> {
     println!("{} Routing message through Tor...", "🧅".cyan());
     
     // TODO: Implement actual Tor SOCKS5 proxy connection

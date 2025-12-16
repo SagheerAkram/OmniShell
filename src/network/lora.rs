@@ -1,7 +1,7 @@
 // LoRa Protocol Simulator
+#![allow(dead_code)]
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::error::Result;
 use crate::storage::Storage;
@@ -149,7 +149,7 @@ pub async fn scan_lora_nodes() -> Result<()> {
         ("NODE-E5F6", -78, 1.2, 7),
     ];
     
-    for (node_id, rssi, distance, sf) in nodes {
+    for (node_id, rssi, distance, sf) in &nodes {
         println!("  {} {} RSSI: {} dBm | Distance: ~{} km | SF{}", 
             "●".green(), 
             node_id.cyan(), 
@@ -213,7 +213,7 @@ fn calculate_bitrate(bandwidth: f64, sf: u8) -> u32 {
 fn calculate_time_on_air(payload_size: usize, config: &LoRaConfig) -> u32 {
     // Simplified ToA calculation (ms)
     let symbol_time = (2_u32.pow(config.spreading_factor as u32) as f64 / config.bandwidth) as u32;
-    let preamble_time = (8 + 4.25) * symbol_time as f64;
+    let preamble_time = (8.0 + 4.25) * symbol_time as f64;
     let payload_symbols = ((payload_size as f64 * 8.0) / config.spreading_factor as f64).ceil();
     
     (preamble_time + (payload_symbols * symbol_time as f64)) as u32

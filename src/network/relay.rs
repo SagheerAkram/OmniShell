@@ -1,7 +1,7 @@
 // Relay Node System for P2P Network
+#![allow(dead_code)]
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::net::SocketAddr;
 
 use crate::error::Result;
@@ -149,7 +149,7 @@ pub async fn find_relay_route(destination: &str, hops: usize) -> Result<RelayRou
     let relays = discover_relay_nodes().await?;
     
     // Select relays with lowest load
-    let mut selected: Vec<String> = relays.iter()
+    let selected: Vec<String> = relays.iter()
         .filter(|r| r.trusted && r.current_load < r.capacity)
         .take(hops)
         .map(|r| r.id.clone())
@@ -176,7 +176,7 @@ pub async fn find_relay_route(destination: &str, hops: usize) -> Result<RelayRou
 }
 
 /// Send message through relay network
-pub async fn send_via_relay(destination: &str, message: &[u8], hops: usize) -> Result<()> {
+pub async fn send_via_relay(destination: &str, _message: &[u8], hops: usize) -> Result<()> {
     println!("{} Sending via relay network...", "→".cyan());
     
     let route = find_relay_route(destination, hops).await?;

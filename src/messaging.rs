@@ -4,14 +4,13 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::crypto::{PublicKey, encrypt_message, decrypt_message};
+use crate::crypto::{encrypt_message, decrypt_message};
 use crate::crypto::encryption::{CipherType, EncryptedMessage};
-use crate::crypto::keys::generate_keypair;
 use crate::config::Config;
 use crate::contacts::get_contact_public_key;
 use crate::error::{OmniShellError, Result};
 use crate::identity::get_keypair;
-use crate::storage::{Storage, omnishell_dir};
+use crate::storage::Storage;
 use crate::ui::output;
 
 // Advanced operations module
@@ -35,7 +34,8 @@ pub struct Message {
     pub edited_at: Option<i64>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct StoredMessage {
     pub id: i64,
     pub contact_id: i64,

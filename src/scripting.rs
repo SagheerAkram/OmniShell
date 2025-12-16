@@ -1,6 +1,12 @@
 // Scripting & Pipe Support Module
+//
+// TO ENABLE: Wire up scripting commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::process::{Command, Stdio};
 use serde_json::Value;
 
@@ -8,14 +14,16 @@ use crate::error::Result;
 
 /// Handle piped input from stdin
 pub fn read_from_pipe() -> Result<Option<String>> {
-    // Check if stdin is a pipe
-    if atty::isnt(atty::Stream::Stdin) {
-        let mut buffer = String::new();
-        io::stdin().read_to_string(&mut buffer)?;
-        Ok(Some(buffer))
-    } else {
-        Ok(None)
-    }
+    // TODO: Implement pipe detection without atty dependency
+    // For now, always return None
+    // if atty::isnt(atty::Stream::Stdin) {
+    //     let mut buffer = String::new();
+    //     io::stdin().read_to_string(&mut buffer)?;
+    //     Ok(Some(buffer))
+    // } else {
+    //     Ok(None)
+    // }
+    Ok(None)
 }
 
 /// Output to stdout for piping

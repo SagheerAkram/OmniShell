@@ -76,7 +76,7 @@ brew install openssl sqlite
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/omnishell.git
+git clone https://github.com/SagheerAkram/OmniShell.git
 cd omnishell
 ```
 
@@ -128,28 +128,112 @@ After installation, `omnishell` will be available in your PATH.
 
 ---
 
+## Automated Installation (Recommended)
+
+### Using Install Scripts
+
+The easiest way to install OmniShell is using the provided install scripts:
+
+#### Windows
+
+```powershell
+# Run the install script
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+The script will:
+- Build the release binary
+- Copy `omnishell.exe` to `C:\Program Files\OmniShell\`
+- Add it to your system PATH
+- Make `omnishell` available system-wide
+
+#### Linux / macOS
+
+```bash
+# Make the script executable
+chmod +x install.sh
+
+# Run the install script
+./install.sh
+```
+
+The script will:
+- Build the release binary
+- Copy `omnishell` to `/usr/local/bin/`
+- Set proper permissions
+- Make `omnishell` available system-wide
+
+### Manual PATH Setup
+
+If you prefer to run from the project directory:
+
+```powershell
+# Windows PowerShell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\path\to\OmniShell", [EnvironmentVariableTarget]::User)
+
+# Then restart PowerShell
+```
+
+```bash
+# Linux/macOS
+echo 'export PATH="$PATH:/path/to/OmniShell"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
 ## First Run
 
 ### Initialize OmniShell
 
 ```bash
-# Run from the build directory
-./target/release/omnishell init
-
-# Or if installed globally
+# Initialize (creates keys, database, and config)
 omnishell init
 ```
 
 This will:
 1. Create `~/.omnishell/` directory structure
-2. Generate Ed25519 key pair
-3. Create configuration file
-4. Generate QR code for your public key
+2. Generate Ed25519 key pair (256-bit)
+3. **Initialize SQLite database** ✅
+4. Create configuration file
+5. Generate QR code for your public key
+6. Display your identity
 
 ### View Your Identity
 
 ```bash
 omnishell whoami
+```
+
+You'll see:
+- Your public key (share this with contacts)
+- Fingerprint for verification
+- Visual hash
+- Device ID
+- QR code location
+
+### Add Your First Contact
+
+```bash
+omnishell add alice omni:PUBLIC_KEY_HERE
+```
+
+### Send a Message
+
+```bash
+omnishell msg @alice "Hello, secure world!"
+```
+
+### Read Messages
+
+```bash
+omnishell read @alice
+```
+
+### Check Statistics
+
+```bash
+omnishell stats
 ```
 
 ---
@@ -376,6 +460,6 @@ For more information, see the [README.md](README.md) and [User Guide](docs/USER_
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/omnishell/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/omnishell/discussions)
+- **Issues**: [GitHub Issues](https://github.com/SagheerAkram/OmniShell/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/SagheerAkram/OmniShell/discussions)
 - **Documentation**: [docs/](docs/)

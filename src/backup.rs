@@ -79,7 +79,7 @@ pub async fn create_backup(output_path: Option<String>, password: Option<String>
         println!("{} Encrypting backup with password...", "→".cyan());
         
         let backup_data = fs::read(&backup_path)?;
-        let key = derive_key_from_password(&pwd, b"omnishell_backup_salt")?;
+        let key = derive_key_from_password(&pwd)?;
         let encrypted = encrypt_message(&backup_data, &key, CipherType::Aes256Gcm)?;
         let encrypted_bytes = bincode::serialize(&encrypted)?;
         
@@ -132,11 +132,11 @@ pub async fn restore_backup(backup_path: String, password: Option<String>) -> Re
     println!("{} Restoring backup...", "→".cyan());
     
     // Handle encrypted backup
-    let backup_data = if backup_path.ends_with(".enc") {
+    let _backup_data = if backup_path.ends_with(".enc") {
         if let Some(pwd) = &password {
             let encrypted_bytes = fs::read(backup)?;
             let encrypted = bincode::deserialize(&encrypted_bytes)?;
-            let key = derive_key_from_password(pwd, b"omnishell_backup_salt")?;
+            let key = derive_key_from_password(pwd)?;
             decrypt_message(&encrypted, &key)?
         } else {
             return Err(OmniShellError::InvalidInput("Password required for encrypted backup".to_string()));

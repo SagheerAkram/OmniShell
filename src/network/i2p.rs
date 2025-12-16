@@ -1,11 +1,10 @@
 // I2P Integration Module
+#![allow(dead_code)]
 use colored::Colorize;
-use std::process::{Command, Stdio};
 use std::fs;
-use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{OmniShellError, Result};
+use crate::error::Result;
 use crate::storage::omnishell_dir;
 use crate::ui::output;
 
@@ -235,7 +234,7 @@ pub async fn get_i2p_destination() -> Result<()> {
 }
 
 /// Send message via I2P
-pub async fn send_via_i2p(destination: &str, encrypted_message: &[u8]) -> Result<()> {
+pub async fn send_via_i2p(destination: &str, _encrypted_message: &[u8]) -> Result<()> {
     println!("{} Routing message through I2P...", "🌐".cyan());
     
     // TODO: Implement actual I2P SAM v3 connection

@@ -1,12 +1,11 @@
 use colored::Colorize;
-use sqlx::SqlitePool;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use rand::RngCore;
 
-use crate::crypto::{encrypt_message, decrypt_message};
-use crate::crypto::encryption::{CipherType, EncryptedMessage};
+use crate::crypto::encrypt_message;
+use crate::crypto::encryption::CipherType;
 use crate::error::{OmniShellError, Result};
 use crate::storage::Storage;
 use crate::ui::output;
@@ -140,7 +139,7 @@ pub async fn list_groups() -> Result<()> {
     println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
     println!();
     
-    for (group_name, created_at) in groups {
+    for (group_name, created_at) in &groups {
         // Count members
         let member_count: (i64,) = sqlx::query_as(
             "SELECT COUNT(*) FROM group_members WHERE group_id = (SELECT id FROM groups WHERE name = ?)"
@@ -153,7 +152,7 @@ pub async fn list_groups() -> Result<()> {
             group_name.cyan().bold(),
             member_count.0
         );
-        println!("  Created: {}", output::format_timestamp(created_at).bright_black());
+        println!("  Created: {}", output::format_timestamp(*created_at).bright_black());
     }
     
     println!();
@@ -343,8 +342,10 @@ pub async fn send_group_message(group_name: &str, message: String) -> Result<()>
     let config = Config::load()?;
     let cipher = CipherType::from_string(&config.encryption.default_cipher)?;
     
-    let encrypted = encrypt_message(&msg_json, &group_key[..32].try_into().unwrap(), cipher)?;
-    let encrypted_bytes = bincode::serialize(&encrypted)?;
+    let key_slice: &[u8; 32] = group_key[..32].try_into()
+        .map_err(|_| OmniShellError::Crypto("Invalid group key length".to_string()))?;
+    let encrypted = encrypt_message(&msg_json, key_slice, cipher)?;
+    let _encrypted_bytes = bincode::serialize(&encrypted)?;
     
     println!("{} Message encrypted", "✓".green());
     println!();

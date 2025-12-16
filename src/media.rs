@@ -1,4 +1,16 @@
 // Voice Messages & Location Sharing
+//
+// TO ENABLE: Add voice and location commands to main.rs:
+// ```rust
+// /// Record voice message
+// Voice { recipient: String },
+// /// Share location
+// Location { recipient: String, #[arg(long)] live: bool },
+// ```
+// Wire to media::record_voice_message() and media::share_location().
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -72,28 +84,31 @@ pub async fn record_voice_message(duration: u32, output_path: Option<String>) ->
     
     // Encrypt audio data
     let keypair = crate::identity::get_keypair()?;
-    let encrypted_data = crate::crypto::encrypt_message(
+    let encrypted_msg = crate::crypto::encrypt_message(
         &audio_data,
         &keypair.to_bytes(),
         crate::crypto::encryption::CipherType::Aes256Gcm
     )?;
     
+    // Serialize encrypted message
+    let encrypted_bytes = bincode::serialize(&encrypted_msg)?;
+    
     // Save to file
-    fs::write(&file_path, &encrypted_data)?;
+    fs::write(&file_path, &encrypted_bytes)?;
     
     let voice_msg = VoiceMessage {
         duration,
         format: "opus".to_string(),
         sample_rate,
         channels,
-        encrypted_data,
+        encrypted_data: encrypted_bytes.clone(),
         file_path: file_path.clone(),
     };
     
     println!("{} Voice message recorded", "✓".green().bold());
     println!("  Duration: {}s", duration);
     println!("  Format: Opus @ {} Hz", sample_rate);
-    println!("  Size: ~{} KB", encrypted_data.len() / 1024);
+    println!("  Size: ~{} KB", encrypted_bytes.len() / 1024);
     println!("  Saved to: {}", file_path.display().to_string().bright_black());
     println!();
     
@@ -135,9 +150,10 @@ pub async fn play_voice_message(voice_file: String) -> Result<()> {
     }
     
     // Read and decrypt
-    let encrypted_data = fs::read(&path)?;
+    let encrypted_bytes = fs::read(&path)?;
+    let encrypted_msg: crate::crypto::encryption::EncryptedMessage = bincode::deserialize(&encrypted_bytes)?;
     let keypair = crate::identity::get_keypair()?;
-    let _audio_data = crate::crypto::decrypt_message(&encrypted_data, &keypair.to_bytes())?;
+    let _audio_data = crate::crypto::decrypt_message(&encrypted_msg, &keypair.to_bytes())?;
     
     println!("  Playing... (audio playback would happen here)");
     println!();

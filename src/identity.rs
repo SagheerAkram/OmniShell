@@ -1,5 +1,4 @@
 use colored::Colorize;
-use std::path::PathBuf;
 use crate::crypto::{generate_keypair, KeyPair};
 use crate::crypto::keys::{PublicKey, generate_device_id};
 use crate::storage::{ensure_directories, omnishell_dir};
@@ -63,6 +62,12 @@ pub async fn init(force: bool) -> Result<()> {
     let config = Config::default();
     config.save()?;
     println!("{} Configuration saved", "✓".green());
+    println!();
+
+    // Initialize database
+    println!("{} Initializing database...", "→".cyan());
+    let _storage = crate::storage::Storage::new().await?;
+    println!("{} Database initialized", "✓".green());
     println!();
 
     // Display identity
@@ -230,6 +235,7 @@ pub fn get_keypair() -> Result<KeyPair> {
     load_keypair()
 }
 
+#[allow(dead_code)]
 pub fn get_public_key() -> Result<PublicKey> {
     let keypair = load_keypair()?;
     Ok(keypair.public_key())

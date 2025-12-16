@@ -380,7 +380,7 @@ Fingerprint:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and build
-git clone https://github.com/yourusername/omnishell.git
+git clone https://github.com/SagheerAkram/OmniShell.git
 cd omnishell
 cargo build --release
 ```

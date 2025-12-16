@@ -5,7 +5,6 @@ use aes_gcm::{
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaChaKey};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use zeroize::Zeroize;
 use crate::error::{OmniShellError, Result};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

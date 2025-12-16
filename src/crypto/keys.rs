@@ -1,7 +1,8 @@
-use ed25519_dalek::{SigningKey, VerifyingKey, Signer, Verifier, Signature as Ed25519Signature};
+use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
+use blake2::Digest; // Add this import for digest() method
 use crate::error::{OmniShellError, Result};
 
 const WORDLIST: &[&str] = &[
@@ -93,20 +94,20 @@ impl PublicKey {
         let mut parts = Vec::new();
         
         // First word from wordlist
-        parts.push(WORDLIST[(hash[0] as usize) % WORDLIST.len()]);
+        parts.push(WORDLIST[(hash[0] as usize) % WORDLIST.len()].to_string());
         
         // Second word from wordlist
-        parts.push(WORDLIST[(hash[1] as usize) % WORDLIST.len()]);
+        parts.push(WORDLIST[(hash[1] as usize) % WORDLIST.len()].to_string());
         
         // 4-digit number
         let num = u16::from_be_bytes([hash[2], hash[3]]) % 10000;
-        parts.push(&format!("{:04}", num));
+        parts.push(format!("{:04}", num));
         
         // Third word
-        parts.push(WORDLIST[(hash[4] as usize) % WORDLIST.len()]);
+        parts.push(WORDLIST[(hash[4] as usize) % WORDLIST.len()].to_string());
         
         // Fourth word
-        parts.push(WORDLIST[(hash[5] as usize) % WORDLIST.len()]);
+        parts.push(WORDLIST[(hash[5] as usize) % WORDLIST.len()].to_string());
         
         parts.join("-")
     }
@@ -170,6 +171,31 @@ pub fn generate_device_id() -> String {
     let mut rng = OsRng;
     let bytes: [u8; 16] = rng.gen();
     hex::encode(bytes)
+}
+
+pub fn generate_fingerprint(public_key_bytes: &[u8]) -> String {
+    let hash = blake2::Blake2b512::digest(public_key_bytes);
+    
+    // Take first 8 bytes and convert to human-readable format
+    let mut parts = Vec::new();
+    
+    // First word from wordlist
+    parts.push(WORDLIST[(hash[0] as usize) % WORDLIST.len()].to_string());
+    
+    // Second word from wordlist
+    parts.push(WORDLIST[(hash[1] as usize) % WORDLIST.len()].to_string());
+    
+    // 4-digit number
+    let num = u16::from_be_bytes([hash[2], hash[3]]) % 10000;
+    parts.push(format!("{:04}", num));
+    
+    // Third word
+    parts.push(WORDLIST[(hash[4] as usize) % WORDLIST.len()].to_string());
+    
+    // Fourth word
+    parts.push(WORDLIST[(hash[5] as usize) % WORDLIST.len()].to_string());
+    
+    parts.join("-")
 }
 
 #[cfg(test)]

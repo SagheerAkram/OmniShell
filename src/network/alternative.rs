@@ -1,4 +1,5 @@
 // SMS Gateway Integration & Satellite Simulator
+#![allow(dead_code)]
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 

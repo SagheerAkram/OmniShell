@@ -1,4 +1,16 @@
 // Resume Interrupted File Transfers
+//
+// TO ENABLE: Add resume command to main.rs:
+// ```rust
+// /// Resume interrupted transfer
+// Resume { transfer_id: String },
+// /// List paused transfers
+// Transfers,
+// ```
+// Wire to resume::resume_transfer() and resume::list_paused_transfers().
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::path::Path;

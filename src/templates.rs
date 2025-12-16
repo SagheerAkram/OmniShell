@@ -1,4 +1,5 @@
 // Message Templates
+#![allow(dead_code)]
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use crate::error::Result;

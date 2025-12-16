@@ -168,10 +168,10 @@ fn test_encryption() -> Result<()> {
 
 fn test_signatures() -> Result<()> {
     let keypair = crypto::generate_keypair();
-    let message = b"Test message";
-    let signature = crypto::sign_message(message, &keypair)?;
-    let verified = crypto::verify_signature(message, &signature, &keypair.public_key())?;
-    assert!(verified);
+    let message = b"Test message for signature";
+    let signature = crypto::sign_message(message, &keypair);
+    let result = crypto::verify_signature(message, &signature, &keypair.verifying_key);
+    assert!(result.is_ok(), "Signature verification failed");
     Ok(())
 }
 

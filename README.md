@@ -75,36 +75,76 @@
 
 ### Installation
 
-```bash
-# Linux/macOS
-chmod +x install.sh
-./install.sh
+#### Option 1: Automated Install (Recommended)
 
+```bash
 # Windows
 powershell -ExecutionPolicy Bypass -File install.ps1
 
-# From source
+# Linux/macOS
+chmod +x install.sh
+./install.sh
+```
+
+The install script will:
+- Build the release binary
+- Copy `omnishell.exe` to your system
+- Add it to your PATH
+- Make it available system-wide
+
+#### Option 2: Manual Build
+
+```bash
+# Build from source
 cargo build --release
+
+# Copy to project root for easy access
+cp target/release/omnishell.exe omnishell.exe  # Windows
+cp target/release/omnishell ./omnishell        # Linux/macOS
+
+# Run from project directory
+./omnishell init
+```
+
+#### Option 3: Add to PATH Manually
+
+```powershell
+# Windows PowerShell (run as Administrator)
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\path\to\OmniShell", [EnvironmentVariableTarget]::User)
+
+# Then restart PowerShell and use:
+omnishell init
 ```
 
 ### First Commands
 
 ```bash
-# 1. Initialize
+# 1. Initialize OmniShell
 omnishell init
 
-# 2. View your identity
+# 2. View your identity (includes QR code)
 omnishell whoami
 
 # 3. Add a contact
 omnishell add alice omni:PUBLIC_KEY_HERE
 
-# 4. Send encrypted message
+# 4. List your contacts
+omnishell list
+
+# 5. Send encrypted message
 omnishell msg @alice "Hello, secure world!"
 
-# 5. Read messages
+# 6. Read messages
 omnishell read @alice
+
+# 7. Check statistics
+omnishell stats
+
+# 8. Create backup
+omnishell backup
 ```
+
+> **Note:** After installation, you can use `omnishell` from anywhere on your system!
 
 ---
 

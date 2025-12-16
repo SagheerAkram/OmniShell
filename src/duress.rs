@@ -1,4 +1,14 @@
 // Duress Password Implementation
+//
+// TO ENABLE: Add duress command to main.rs:
+// ```rust
+// /// Setup duress password
+// SetupDuress { password: String },
+// ```
+// Wire to duress::setup_duress_password() in main.rs match statement.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use crate::error::Result;
 use crate::storage::Storage;

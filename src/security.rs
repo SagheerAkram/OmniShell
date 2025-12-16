@@ -1,4 +1,18 @@
 // Security & Privacy Tools
+//
+// TO ENABLE: Add security commands to main.rs:
+// ```rust
+// /// Security settings
+// Security {
+//     #[command(subcommand)]
+//     action: SecurityAction,
+// },
+// ```
+// Create SecurityAction enum with: Screenshot, Geofence, MasterPassword, Twofa, Honeypot
+// Wire to security::enable_screenshot_detection(), setup_geofence(), etc.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use crate::error::Result;
 
@@ -70,10 +84,10 @@ pub async fn setup_2fa() -> Result<()> {
     use rand::RngCore;
     let mut secret = [0u8; 20];
     rand::rngs::OsRng.fill_bytes(&mut secret);
-    let secret_b32 = base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &secret);
+    let secret_hex = hex::encode(&secret);
     
     println!("{}", "2FA Secret:".bold());
-    println!("  {}", secret_b32.green());
+    println!("  {}", secret_hex.green());
     println!();
     println!("Scan this QR code with your authenticator app:");
     println!("  (QR code would be displayed here)");
@@ -84,7 +98,7 @@ pub async fn setup_2fa() -> Result<()> {
     let pool = storage.pool();
     
     sqlx::query("INSERT OR REPLACE INTO config (key, value) VALUES ('2fa_secret', ?)")
-        .bind(&secret_b32)
+        .bind(&secret_hex)
         .execute(pool)
         .await?;
     

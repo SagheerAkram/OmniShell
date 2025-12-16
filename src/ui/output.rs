@@ -33,6 +33,8 @@ pub fn show_progress(total: u64, message: &str) -> ProgressBar {
     pb
 }
 
+// Helper UI functions - available for use in any module
+#[allow(dead_code)]
 pub fn print_box(title: &str, content: &[String]) {
     let max_width = content.iter().map(|s| s.len()).max().unwrap_or(0).max(title.len());
     let width = max_width + 4;
@@ -48,6 +50,7 @@ pub fn print_box(title: &str, content: &[String]) {
     println!("{}", format!("╚{}╝", "═".repeat(width)).cyan());
 }
 
+#[allow(dead_code)]
 pub fn print_table(headers: &[&str], rows: &[Vec<String>]) {
     use prettytable::{Table, Row, Cell, format};
     
@@ -116,18 +119,22 @@ pub fn print_routing_path(path: &[String]) {
     println!();
 }
 
+#[allow(dead_code)]
 pub fn print_success(message: &str) {
     println!("{} {}", "✓".green().bold(), message);
 }
 
+#[allow(dead_code)]
 pub fn print_error(message: &str) {
     println!("{} {}", "✗".red().bold(), message);
 }
 
+#[allow(dead_code)]
 pub fn print_warning(message: &str) {
     println!("{} {}", "⚠".yellow().bold(), message);
 }
 
+#[allow(dead_code)]
 pub fn print_info(message: &str) {
     println!("{} {}", "ℹ".blue().bold(), message);
 }

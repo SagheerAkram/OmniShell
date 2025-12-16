@@ -32,6 +32,7 @@ pub fn derive_key(password: &str, salt: Option<&[u8]>) -> Result<([u8; 32], Vec<
 }
 
 /// Verify a password against a stored hash
+#[allow(dead_code)]
 pub fn verify_password(password: &str, hash_str: &str) -> Result<bool> {
     let argon2 = Argon2::default();
     
@@ -42,10 +43,17 @@ pub fn verify_password(password: &str, hash_str: &str) -> Result<bool> {
 }
 
 /// Simple key derivation using SHA-256 (for non-password use cases)
+#[allow(dead_code)]
 pub fn derive_key_simple(input: &[u8]) -> [u8; 32] {
     let mut hasher = Sha256::new();
     hasher.update(input);
     hasher.finalize().into()
+}
+
+/// Alias for derive_key that returns just the key (for compatibility)
+pub fn derive_key_from_password(password: &str, salt: &[u8]) -> Result<[u8; 32]> {
+    let (key, _salt) = derive_key(password, Some(salt))?;
+    Ok(key)
 }
 
 #[cfg(test)]

@@ -1,4 +1,14 @@
 // Advanced Analytics & Statistics
+//
+// TO ENABLE: Add analytics command to main.rs:
+// ```rust
+// /// Show analytics dashboard
+// Analytics,
+// ```
+// Wire to analytics::show_analytics() in main.rs match statement.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use crate::error::Result;
 use crate::storage::Storage;

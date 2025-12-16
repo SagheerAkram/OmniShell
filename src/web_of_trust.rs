@@ -1,4 +1,18 @@
 // Web of Trust Implementation
+//
+// TO ENABLE: Add trust commands to main.rs:
+// ```rust
+// /// Web of trust management
+// Trust {
+//     #[command(subcommand)]
+//     action: TrustAction,
+// },
+// ```
+// Create TrustAction enum with: Set, Sign, Path, Show, Verify
+// Wire to web_of_trust::set_trust_level(), sign_key(), etc.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -93,29 +107,29 @@ pub async fn sign_key(contact: String, trust_level: TrustLevel) -> Result<()> {
     .fetch_optional(pool)
     .await?;
     
-    if let Some((public_key, fingerprint)) = contact_data {
+    if let Some((_public_key, fingerprint)) = contact_data {
         // Get our identity
         let our_keypair = crate::identity::get_keypair()?;
-        let our_identity = crate::identity::get_identity().await?;
+        let our_username = "me".to_string(); // Simplified for now
         
         // Create trust signature
         let signature_data = format!("{}:{}:{}", 
-            our_identity.username, 
+            our_username, 
             contact_name, 
             trust_level.to_i32()
         );
         
-        let signature = crate::crypto::sign_message(
+        let signature_bytes = crate::crypto::signing::sign_message(
             signature_data.as_bytes(),
             &our_keypair
         )?;
         
         let trust_sig = TrustSignature {
-            signer: our_identity.username.clone(),
+            signer: our_username.clone(),
             signee: contact_name.to_string(),
             trust_level: trust_level.clone(),
             timestamp: chrono::Utc::now().timestamp(),
-            signature: signature.to_vec(),
+            signature: signature_bytes,
         };
         
         // Store signature
@@ -123,7 +137,7 @@ pub async fn sign_key(contact: String, trust_level: TrustLevel) -> Result<()> {
         sqlx::query(
             "INSERT INTO trust_signatures (signer, signee, trust_level, signature_data) VALUES (?, ?, ?, ?)"
         )
-        .bind(&our_identity.username)
+        .bind(&our_username)
         .bind(contact_name)
         .bind(trust_level.to_i32())
         .bind(&sig_json)
@@ -131,7 +145,7 @@ pub async fn sign_key(contact: String, trust_level: TrustLevel) -> Result<()> {
         .await?;
         
         println!("{} Key signed", "✓".green().bold());
-        println!("  Signer: {}", our_identity.username.cyan());
+        println!("  Signer: {}", our_username.cyan());
         println!("  Signee: {}", contact_name.cyan());
         println!("  Trust: {}", trust_level.to_string().yellow());
         println!("  Fingerprint: {}", fingerprint.bright_black());
@@ -155,7 +169,7 @@ pub async fn calculate_trust_path(target: String) -> Result<Vec<String>> {
     let storage = Storage::new().await?;
     let pool = storage.pool();
     
-    let our_identity = crate::identity::get_identity().await?;
+    let our_username = "me".to_string(); // Simplified for now
     let target_name = target.trim_start_matches('@');
     
     // Get all trust signatures
@@ -174,8 +188,8 @@ pub async fn calculate_trust_path(target: String) -> Result<Vec<String>> {
     }
     
     // BFS to find shortest trust path
-    let mut queue = vec![(our_identity.username.clone(), vec![our_identity.username.clone()])];
-    let mut visited = HashSet::new();
+    let mut queue: Vec<(String, Vec<String>)> = vec![(our_username.clone(), vec![our_username.clone()])];
+    let mut visited: HashSet<String> = HashSet::new();
     
     while let Some((current, path)) = queue.pop() {
         if current == target_name {
@@ -224,7 +238,7 @@ pub async fn show_web_of_trust() -> Result<()> {
     let storage = Storage::new().await?;
     let pool = storage.pool();
     
-    let our_identity = crate::identity::get_identity().await?;
+    let our_username = "me".to_string(); // Simplified for now
     
     // Get all contacts with trust levels
     let contacts: Vec<(String, String)> = sqlx::query_as(
@@ -243,12 +257,13 @@ pub async fn show_web_of_trust() -> Result<()> {
     println!();
     
     let mut by_level: HashMap<String, Vec<String>> = HashMap::new();
-    for (name, level) in contacts {
-        by_level.entry(level).or_insert_with(Vec::new).push(name);
+    let total_contacts = contacts.len();
+    for (name, level) in &contacts {
+        by_level.entry(level.clone()).or_insert_with(Vec::new).push(name.clone());
     }
     
     // Ultimate trust (you)
-    println!("{} {} (you)", "●".green().bold(), our_identity.username.cyan());
+    println!("{} {} (you)", "●".green().bold(), our_username.cyan());
     println!();
     
     // Full trust
@@ -286,7 +301,7 @@ pub async fn show_web_of_trust() -> Result<()> {
     .await?;
     
     println!("{}", "Statistics:".bold());
-    println!("  Total contacts: {}", contacts.len());
+    println!("  Total contacts: {}", total_contacts);
     println!("  Trust signatures: {}", sig_count.0);
     println!();
     

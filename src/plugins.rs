@@ -1,6 +1,12 @@
 // Plugin System Foundation
+//
+// TO ENABLE: Wire up plugin commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::fs;
 use serde::{Deserialize, Serialize};
 

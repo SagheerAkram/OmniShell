@@ -1,4 +1,17 @@
 // Desktop Notifications & Alert System
+//
+// TO ENABLE: Add notification commands to main.rs:
+// ```rust
+// /// Notification settings
+// Notifications {
+//     #[command(subcommand)]
+//     action: NotificationAction,
+// },
+// ```
+// Wire to notifications::init_notifications(), set_dnd_mode(), etc.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
@@ -49,7 +62,7 @@ pub async fn init_notifications() -> Result<()> {
 }
 
 /// Send desktop notification
-pub async fn send_notification(title: &str, body: &str, priority: &str) -> Result<()> {
+pub async fn send_notification(title: &str, body: &str, _priority: &str) -> Result<()> {
     let storage = Storage::new().await?;
     let pool = storage.pool();
     

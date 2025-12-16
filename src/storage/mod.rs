@@ -17,9 +17,12 @@ impl Storage {
             std::fs::create_dir_all(parent)?;
         }
 
+        // Use proper SQLite connection string with file:// URI
+        let connection_string = format!("sqlite://{}?mode=rwc", db_path.display());
+        
         let pool = SqlitePoolOptions::new()
             .max_connections(5)
-            .connect(&format!("sqlite:{}", db_path.display()))
+            .connect(&connection_string)
             .await?;
 
         // Run migrations

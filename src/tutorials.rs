@@ -1,4 +1,14 @@
 // Interactive Tutorials
+//
+// TO ENABLE: Add tutorial command to main.rs:
+// ```rust
+// /// Start interactive tutorial
+// Tutorial { topic: Option<String> },
+// ```
+// Wire to tutorials::start_tutorial() in main.rs match statement.
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use crate::error::Result;
 

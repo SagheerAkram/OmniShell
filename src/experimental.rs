@@ -1,9 +1,14 @@
 // Advanced Experimental Features
+//
+// TO ENABLE: Wire up experimental commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Result;
-use crate::storage::Storage;
 
 // ========== Post-Quantum Cryptography ==========
 
@@ -38,7 +43,7 @@ pub async fn init_post_quantum_crypto() -> Result<()> {
 
 // ========== AI Assistant Integration ==========
 
-pub async fn ai_assistant_suggest(context: &str) -> Result<String> {
+pub async fn ai_assistant_suggest(_context: &str) -> Result<String> {
     println!("{} AI Assistant analyzing...", "🤖".cyan());
     
     // Simulated AI suggestions

@@ -1,13 +1,12 @@
 // Network P2P Module - Real implementation foundation
+#![allow(dead_code)]
 use colored::Colorize;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{OmniShellError, Result};
-use crate::crypto::{encrypt_message, decrypt_message};
-use crate::crypto::encryption::CipherType;
+use crate::error::Result;
 
 const DEFAULT_PORT: u16 = 8888;
 
@@ -59,7 +58,7 @@ async fn handle_connection(mut socket: TcpStream, addr: SocketAddr) {
                 // Process received data
                 if let Ok(msg) = bincode::deserialize::<NetworkMessage>(&buffer[..n]) {
                     match msg {
-                        NetworkMessage::Handshake { public_key, version } => {
+                        NetworkMessage::Handshake { public_key: _, version } => {
                             println!("{} Handshake from peer (version: {})", "→".cyan(), version);
                             // Send ack
                             let ack = NetworkMessage::Ack { message_id: "handshake".to_string() };
@@ -67,7 +66,7 @@ async fn handle_connection(mut socket: TcpStream, addr: SocketAddr) {
                                 let _ = socket.write_all(&data).await;
                             }
                         }
-                        NetworkMessage::Message { encrypted_payload } => {
+                        NetworkMessage::Message { encrypted_payload: _ } => {
                             println!("{} Received encrypted message", "→".cyan());
                         }
                         _ => {}
@@ -111,7 +110,7 @@ pub async fn discover_peers() -> Result<Vec<String>> {
     
     // Simple broadcast-based discovery
     // In production, use mDNS or similar
-    let mut discovered = Vec::new();
+    let discovered = Vec::new();
     
     // Simulated discovery
     println!("{} Discovery complete (found 0 peers)", "✓".green());
@@ -138,7 +137,7 @@ pub async fn list_peers() -> Result<()> {
 }
 
 /// Send message via P2P network (real implementation)
-pub async fn send_p2p_message(recipient: &str, encrypted_data: Vec<u8>) -> Result<()> {
+pub async fn send_p2p_message(_recipient: &str, _encrypted_data: Vec<u8>) -> Result<()> {
     println!("{} Sending via P2P network...", "📡".cyan());
     
     // TODO: Look up peer address from DHT or contact database

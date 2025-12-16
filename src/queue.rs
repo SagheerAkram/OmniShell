@@ -1,12 +1,16 @@
 // Offline queue management
+//
+// TO ENABLE: Wire up queue commands in main.rs
+// Functions are ready when needed
+
+#![allow(dead_code)]
+
 use colored::Colorize;
-use sqlx::SqlitePool;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Result;
 use crate::storage::Storage;
-use crate::ui::output;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QueuedMessage {
@@ -44,7 +48,7 @@ pub async fn show_queue() -> Result<()> {
     println!("{} pending messages in queue", pending.len());
     println!();
     
-    for (id, contact_id, created, priority, retries) in pending {
+    for (id, _contact_id, created, priority, retries) in pending {
         let age = Utc::now().timestamp() - created;
         println!("#{} Priority: {} | Age: {}s | Retries: {}", 
             id, 

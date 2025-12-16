@@ -1,10 +1,8 @@
 // Advanced message operations module
 use colored::Colorize;
-use sqlx::SqlitePool;
 use chrono::Utc;
 
-use crate::crypto::PublicKey;
-use crate::crypto::encryption::{EncryptedMessage, decrypt_message, encrypt_message, CipherType};
+use crate::crypto::encryption::{EncryptedMessage, decrypt_message, encrypt_message};
 use crate::contacts::get_contact_public_key;
 use crate::error::{OmniShellError, Result};
 use crate::identity::get_keypair;
@@ -20,7 +18,7 @@ pub async fn reply_message(message_id: &str, reply_text: String) -> Result<()> {
     let pool = storage.pool();
     
     // Get original message to find recipient
-    let original: Option<(String, i64, Vec<u8>)> = sqlx::query_as(
+    let original: Option<(String, i64, String)> = sqlx::query_as(
         "SELECT m.message_id, m.contact_id, c.name 
          FROM messages m 
          JOIN contacts c ON m.contact_id = c.id 
@@ -75,7 +73,7 @@ pub async fn edit_message(message_id: &str, new_text: String) -> Result<()> {
     .fetch_optional(pool)
     .await?;
     
-    let (contact_id, contact_name, encrypted_content, timestamp) = msg_data.ok_or_else(|| {
+    let (_contact_id, contact_name, encrypted_content, timestamp) = msg_data.ok_or_else(|| {
         OmniShellError::Other(format!("Message {} not found or not sent by you", message_id))
     })?;
     
@@ -144,7 +142,7 @@ pub async fn delete_message(message_id: &str, for_everyone: bool) -> Result<()> 
     .fetch_optional(pool)
     .await?;
     
-    let (_contact_id, contact_name, timestamp) = msg_data.ok_or_else(|| {
+    let (_contact_id, _contact_name, timestamp) = msg_data.ok_or_else(|| {
         OmniShellError::Other(format!("Message {} not found or not sent by you", message_id))
     })?;
     
@@ -380,7 +378,7 @@ pub async fn list_starred() -> Result<()> {
     println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
     println!();
     
-    for (msg_id, starred_at) in starred {
+    for (msg_id, starred_at) in &starred {
         // Get message details
         let msg_info: Option<(Vec<u8>, String, String, i64)> = sqlx::query_as(
             "SELECT m.content_encrypted, c.name, m.direction, m.timestamp 
@@ -407,7 +405,7 @@ pub async fn list_starred() -> Result<()> {
             
             let sender = if direction == "sent" { "You" } else { &contact_name };
             
-            println!("⭐ {} | {}", output::format_timestamp(starred_at).bright_black(), msg_id.bright_black());
+            println!("⭐ {} | {}", output::format_timestamp(*starred_at).bright_black(), msg_id.bright_black());
             println!("   {} → @{}: {}", sender.cyan(), contact_name.cyan(), preview);
             println!("   Sent: {}", output::format_timestamp(timestamp).bright_black());
             println!();
@@ -479,7 +477,7 @@ pub async fn search_messages(query: String, contact: Option<String>, _date: Opti
     println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
     println!();
     
-    for (msg_id, content, contact_name, direction, timestamp) in results {
+    for (msg_id, content, contact_name, direction, timestamp) in &results {
         let sender = if direction == "sent" { "You" } else { &contact_name };
         
         // Highlight search query
@@ -488,7 +486,7 @@ pub async fn search_messages(query: String, contact: Option<String>, _date: Opti
             &format!("{}", query.yellow().bold())
         );
         
-        println!("{} | {}", output::format_timestamp(timestamp).bright_black(), msg_id.bright_black());
+        println!("{} | {}", output::format_timestamp(*timestamp).bright_black(), msg_id.bright_black());
         println!("   {} → @{}: {}", sender.cyan(), contact_name.cyan(), highlighted);
         println!();
     }

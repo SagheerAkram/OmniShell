@@ -8,22 +8,6 @@ pub mod alternative; // SMS & Satellite
 pub mod relay; // Relay node system
 
 // Re-export main functions
-pub use p2p::{start_listener, connect_to_peer, discover_peers, list_peers};
-pub use tor::{
-    init_tor, start_tor, stop_tor, tor_status, get_onion_address, 
-    new_circuit, send_via_tor
-};
-pub use i2p::{
-    init_i2p, i2p_status, create_tunnel as create_i2p_tunnel, 
-    get_i2p_destination, send_via_i2p
-};
-pub use lora::{init_lora, lora_status, scan_lora_nodes, send_via_lora};
-pub use bluetooth::{
-    init_bluetooth, bluetooth_status, scan_bluetooth_devices, send_via_bluetooth
-};
-pub use alternative::{
-    init_sms, send_via_sms, init_satellite, satellite_status, send_via_satellite
-};
 
 use colored::Colorize;
 use crate::error::Result;
