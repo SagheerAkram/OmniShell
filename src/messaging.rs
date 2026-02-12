@@ -134,6 +134,11 @@ pub async fn send_message(
     
     // Select protocol
     let selected_protocol = select_protocol(&protocol, &priority, stealth)?;
+    
+    if selected_protocol == "mta" {
+        return crate::network::mta::send_mta_message(recipient_name, &message).await;
+    }
+
     output::print_protocol_selection(&selected_protocol, &get_protocol_reason(&selected_protocol, &priority));
     println!();
     

@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use crate::error::{OmniShellError, Result};
 use crate::storage::omnishell_dir;
 
+pub mod wasm;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Plugin {
     pub name: String,

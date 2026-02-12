@@ -8,31 +8,43 @@ Write-Host "           OmniShell Installation Script                        " -F
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check for Rust
-Write-Host "-> Checking for Rust..." -ForegroundColor Cyan
-$rustInstalled = Get-Command cargo -ErrorAction SilentlyContinue
-
-if (-not $rustInstalled) {
-    Write-Host "[!] Rust not found. Installing..." -ForegroundColor Yellow
-    
-    # Download and install Rust
-    $rustupUrl = "https://win.rustup.rs/x86_64"
-    $rustupPath = "$env:TEMP\rustup-init.exe"
-    
-    Write-Host "  Downloading Rust installer..." -ForegroundColor Gray
-    Invoke-WebRequest -Uri $rustupUrl -OutFile $rustupPath
-    
-    Write-Host "  Running Rust installer..." -ForegroundColor Gray
-    Start-Process -FilePath $rustupPath -ArgumentList "-y" -Wait
-    
-    # Refresh environment
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    
-    Write-Host "[OK] Rust installed" -ForegroundColor Green
+# Check for Tor
+Write-Host "-> Checking for Tor..." -ForegroundColor Cyan
+if (Get-Command tor -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Tor found" -ForegroundColor Green
 } else {
-    $rustVersion = cargo --version
-    Write-Host "[OK] Rust found: $rustVersion" -ForegroundColor Green
+    Write-Host "[!] Tor not found. Installing..." -ForegroundColor Yellow
+    
+    $torUrl = "https://www.torproject.org/dist/torbrowser/13.0.9/tor-expert-bundle-13.0.9-windows-x86_64.tar.gz"
+    $torZip = "$env:TEMP\tor-expert.tar.gz"
+    $torDir = "$env:USERPROFILE\.omnishell\tor-bin"
+    
+    # Download Tor
+    Invoke-WebRequest -Uri $torUrl -OutFile $torZip
+    
+    # Extract
+    New-Item -ItemType Directory -Force -Path $torDir | Out-Null
+    tar -xf $torZip -C $torDir
+    
+    # Add to PATH (persistent)
+    $binPath = "$torDir\tor\src"
+    [Environment]::SetEnvironmentVariable(
+        "Path",
+        [Environment]::GetEnvironmentVariable("Path", "User") + ";$binPath",
+        "User"
+    )
+    $env:Path += ";$binPath"
+    
+    Write-Host "[OK] Tor installed to $binPath" -ForegroundColor Green
 }
+
+# Check for I2P
+Write-Host "-> Checking for I2P..." -ForegroundColor Cyan
+if (Get-Command i2prouter -ErrorAction SilentlyContinue) {
+     Write-Host "[OK] I2P found" -ForegroundColor Green
+} else {
+    Write-Host "[!] I2P not found. Please install from https://geti2p.net/en/download" -ForegroundColor Yellow
+} 
 Write-Host ""
 
 # Check for Visual Studio Build Tools

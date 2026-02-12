@@ -49,19 +49,34 @@ echo -e "${CYAN}→${NC} Installing system dependencies..."
 if [ "$MACHINE" = "Linux" ]; then
     if command -v apt-get &> /dev/null; then
         sudo apt-get update
-        sudo apt-get install -y build-essential pkg-config libssl-dev sqlite3
+        sudo apt-get install -y build-essential pkg-config libssl-dev sqlite3 tor i2pd
     elif command -v dnf &> /dev/null; then
-        sudo dnf install -y gcc pkg-config openssl-devel sqlite
+        sudo dnf install -y gcc pkg-config openssl-devel sqlite tor i2pd
     elif command -v pacman &> /dev/null; then
-        sudo pacman -S --noconfirm base-devel openssl sqlite
+        sudo pacman -S --noconfirm base-devel openssl sqlite tor i2pd
     fi
 elif [ "$MACHINE" = "Mac" ]; then
     if ! command -v brew &> /dev/null; then
         echo -e "${YELLOW}⚠${NC}  Homebrew not found. Please install from https://brew.sh"
         exit 1
     fi
-    brew install openssl sqlite
+    brew install openssl sqlite tor i2p
 fi
+
+# Verify Tor installation
+if command -v tor &> /dev/null; then
+    echo -e "${GREEN}✓${NC} Tor is installed"
+else
+    echo -e "${YELLOW}⚠${NC}  Tor installation failed or not found in PATH"
+fi
+
+# Verify I2P installation
+if command -v i2pd &> /dev/null || command -v i2prouter &> /dev/null; then
+    echo -e "${GREEN}✓${NC} I2P is installed"
+else
+    echo -e "${YELLOW}⚠${NC}  I2P installation failed. You may need to install it manually."
+fi
+
 echo -e "${GREEN}✓${NC} Dependencies installed"
 echo ""
 

@@ -10,6 +10,8 @@ mod contacts;
 mod messaging;
 mod groups;
 mod files;
+mod events;
+mod features;
 mod backup;
 mod network; // Contains p2p, tor, i2p, lora, bluetooth, alternative, relay
 mod queue;
@@ -390,6 +392,143 @@ enum Commands {
         #[command(subcommand)]
         action: Option<ConfigAction>,
     },
+    
+    /// Tactical Command & Control (C2)
+    Tactical,
+
+    /// Physical Security (Sentry Mode)
+    Sentry {
+        /// Arm the system
+        #[arg(long)]
+        arm: bool,
+    },
+
+    /// Distributed Secret Sharing (The Hydra)
+    Hydra {
+        #[command(subcommand)]
+        action: HydraAction,
+    },
+
+    /// Ultrasonic Air-Gap Bridge (Sonar)
+    Sonar {
+        #[command(subcommand)]
+        action: SonarAction,
+    },
+
+    /// Panic Camouflage (Mirage)
+    Mirage {
+        #[command(subcommand)]
+        action: MirageAction,
+    },
+
+    /// ICMP Tunneling (The Mole)
+    Mole {
+        #[command(subcommand)]
+        action: MoleAction,
+    },
+
+    /// Spectrum Agility (Frequency Hopping)
+    Agility {
+        #[command(subcommand)]
+        action: AgilityAction,
+    },
+
+    /// Ghost Reckoning (Dead Reckoning)
+    Ghost {
+        #[command(subcommand)]
+        action: GhostAction,
+    },
+
+    /// Hunter Mode (TDOA Geolocation)
+    Hunter {
+        #[command(subcommand)]
+        action: HunterAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum HydraAction {
+    /// Split a secret into shards
+    Split {
+        /// Secret to split
+        #[arg(long)]
+        secret: String,
+        /// Total shards to generate
+        #[arg(short = 'n', long)]
+        shards: u8,
+        /// Threshold needed to recover
+        #[arg(short = 'k', long)]
+        threshold: u8,
+    },
+    /// Recover a secret from shards
+    Recover {
+        /// Shards to use for recovery
+        #[arg(num_args = 1..)]
+        shares: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum SonarAction {
+    /// Send a message via ultrasonic sound
+    Send {
+        /// Message to transmit
+        message: String,
+    },
+    /// Listen for ultrasonic signals
+    Listen,
+}
+
+#[derive(Subcommand)]
+enum MirageAction {
+    /// Fake Windows Update
+    Update,
+    /// Fake System Logs
+    Logs,
+    /// Fake Code
+    Code,
+}
+
+#[derive(Subcommand)]
+enum MoleAction {
+    /// Send data via ICMP Ping
+    Send {
+        /// Target IP Address
+        #[arg(long)]
+        target: String,
+        /// Data to exfiltrate
+        #[arg(long)]
+        data: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum AgilityAction {
+    /// Start frequency hopping monitor
+    Monitor {
+        /// Shared Mission Seed
+        #[arg(long)]
+        seed: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum GhostAction {
+    /// Start Dead Reckoning Navigation
+    Start {
+        /// Initial Latitude
+        #[arg(long)]
+        lat: f64,
+        /// Initial Longitude
+        #[arg(long)]
+        lon: f64,
+    },
+}
+
+#[derive(Subcommand)]
+enum HunterAction {
+    /// Scan for signals (TDOA)
+    Scan,
 }
 
 #[derive(Subcommand)]
@@ -520,6 +659,11 @@ enum ExperimentalAction {
 
 #[tokio::main]
 async fn main() {
+    // Load feature flags directly
+    if let Err(e) = features::load_features() {
+        eprintln!("Warning: Failed to load features.toml: {}", e);
+    }
+    
     // Initialize logging
     tracing_subscriber::fmt()
         .with_env_filter(
@@ -768,6 +912,129 @@ async fn run(cli: Cli) -> Result<()> {
                     println!("{} Experimental feature enabled: {}", "✓".green(), feature.cyan());
                 },
                 None => experimental::show_experimental_features().await?,
+            }
+        }
+        Commands::Tactical => {
+            if !features::is_enabled("passive_sigint") && !features::is_enabled("sentry_mode") {
+                 // warning but allow dashboard
+            }
+            
+            // Start background tasks if enabled
+            if features::is_enabled("passive_sigint") {
+                tokio::spawn(async {
+                    security::sigint::start_background_analyzer().await;
+                });
+            }
+
+            // Run TUI dashboard
+            ui::dashboard::run_dashboard().await?;
+        }
+        Commands::Sentry { arm } => {
+            if !features::is_enabled("sentry_mode") {
+                println!("{}", "Feature 'sentry_mode' is disabled in features.toml".red());
+                return Ok(());
+            }
+            
+            if arm {
+                security::sentry::arm_sentry().await?;
+            } else {
+                println!("Use --arm to activate Sentry Mode");
+            }
+        }
+        Commands::Hydra { action } => {
+            if !features::is_enabled("the_hydra") {
+                println!("{}", "Feature 'the_hydra' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                HydraAction::Split { secret, shards, threshold } => {
+                     security::hydra::run_hydra_split(secret, shards, threshold).await?;
+                }
+                HydraAction::Recover { shares } => {
+                     security::hydra::run_hydra_recover(shares).await?;
+                }
+            }
+        }
+        Commands::Sonar { action } => {
+            if !features::is_enabled("sonar") {
+                println!("{}", "Feature 'sonar' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                SonarAction::Send { message } => {
+                    network::sonar::AudioModem::transmit(&message)?;
+                }
+                SonarAction::Listen => {
+                    network::sonar::AudioModem::listen()?;
+                }
+            }
+        }
+        Commands::Mirage { action } => {
+            if !features::is_enabled("mirage") {
+                println!("{}", "Feature 'mirage' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            let mode = match action {
+                MirageAction::Update => ui::mirage::MirageMode::Update,
+                MirageAction::Logs => ui::mirage::MirageMode::Logs,
+                MirageAction::Code => ui::mirage::MirageMode::Code,
+            };
+            ui::mirage::start_mirage(mode)?;
+        }
+        Commands::Mole { action } => {
+            if !features::is_enabled("the_mole") {
+                println!("{}", "Feature 'the_mole' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                MoleAction::Send { target, data } => {
+                    // Normalize IP
+                    use std::net::IpAddr;
+                    let ip: IpAddr = target.parse().map_err(|_| "Invalid IP address")?;
+                    network::tunnel::IcmpTunnel::send_icmp(ip, &data)?;
+                }
+            }
+        }
+        Commands::Agility { action } => {
+            if !features::is_enabled("spectrum_agility") {
+                println!("{}", "Feature 'spectrum_agility' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                AgilityAction::Monitor { seed } => {
+                    let hopper = network::agility::FrequencyHopper::new(&seed);
+                    hopper.monitor()?;
+                }
+            }
+        }
+        Commands::Ghost { action } => {
+            if !features::is_enabled("ghost_reckoning") {
+                println!("{}", "Feature 'ghost_reckoning' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                GhostAction::Start { lat, lon } => {
+                    let mut reckoner = network::ghost::GhostReckoner::new(lat, lon);
+                    reckoner.start()?;
+                }
+            }
+        }
+        Commands::Hunter { action } => {
+            if !features::is_enabled("hunter_mode") {
+                println!("{}", "Feature 'hunter_mode' is disabled in features.toml".red());
+                return Ok(());
+            }
+
+            match action {
+                HunterAction::Scan => {
+                    security::hunter::TDoATriangulator::scan()?;
+                }
             }
         }
     }

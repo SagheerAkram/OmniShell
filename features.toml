@@ -1,0 +1,45 @@
+# OmniShell Feature Flags
+# Enable/Disable advanced capabilities here.
+
+[features]
+# "Cortex" Plugin Engine - Load external WASM modules
+cortex_plugins = true
+
+# Passive SIGINT - Background radio spectrum monitoring
+passive_sigint = true
+
+# "Sentry" Mode - Physical security (lid sensor, motion detection)
+sentry_mode = true
+
+# Multipath Transport Aggregation - Split messages across networks
+mta = true
+
+# "The Hydra" - Distributed Secret Sharing
+the_hydra = true
+
+# "Sonar" - Ultrasonic Air-Gap Bridge
+sonar = true
+
+# "Mirage" - Panic Camouflage UI
+mirage = true
+
+# "The Mole" - ICMP Tunneling
+the_mole = true
+
+# "Ghost Reckoning" - Dead Reckoning Navigation
+ghost_reckoning = true
+
+# "Hunter Mode" - TDOA Geolocation
+hunter_mode = true
+
+# "Triangulate" - Collaborative radio direction finding
+triangulate = false
+
+# "The Mule" - Automated Sneakernet bridge
+the_mule = false
+
+# "Typing DNA" - Keystroke dynamics authentication
+typing_dna = false
+
+# "Honey-Tokens" - Decoy files to detect intrusion
+honey_tokens = false

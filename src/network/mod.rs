@@ -6,6 +6,7 @@ pub mod lora;
 pub mod bluetooth;
 pub mod alternative; // SMS & Satellite
 pub mod relay; // Relay node system
+pub mod mta; // Multipath Transport Aggregation
 
 // Re-export main functions
 

@@ -87,6 +87,7 @@ chmod +x install.sh
 ```
 
 The install script will:
+- Install required dependencies (Tor, I2P, etc.)
 - Build the release binary
 - Copy `omnishell.exe` to your system
 - Add it to your PATH
@@ -160,7 +161,28 @@ omnishell backup
 
 ---
 
-## 💡 Why OmniShell?
+## � No Internet? No Problem!
+
+OmniShell is designed to work even when you have **zero internet connection**. Here is how you can use it:
+
+### 🏠 **At Home / Office / Dorm (Local Wi-Fi)**
+**Scenario**: The internet is down, or you are on a restricted college/office Wi-Fi that blocks messaging apps.
+- **How it works**: OmniShell finds other users connected to the *same* Wi-Fi router.
+- **What you can do**: Chat, send huge files (movies, projects) at super fast speeds directly between laptops. No data usage!
+
+### 🚌 **On the Bus / Train / Plane (Bluetooth)**
+**Scenario**: You are travelling with friends and have no signal.
+- **How it works**: Uses your device's Bluetooth to create a mesh network.
+- **What you can do**: Text friends sitting nearby. Messages can "hop" from one phone to another to reach someone further away.
+
+### 🏕️ **Hiking / Remote Areas (LoRa)**
+**Scenario**: You are kilometers away from civilization.
+- **How it works**: Uses tiny, cheap radio transmitters (LoRa) that plug into your laptop.
+- **What you can do**: Send texts up to **15km (9 miles)** away without any cell towers or satellites.
+
+---
+
+## �💡 Why OmniShell?
 
 ### **Superior to BitChat**
 
@@ -181,14 +203,15 @@ omnishell backup
 
 ## 🎯 Use Cases
 
-- **🎤 Journalism** - Anonymous sources, emergency broadcast, panic mode
-- **👥 Remote Teams** - Group chat, automation, REST API integration
-- **🚨 Disaster Recovery** - LoRa mesh, offline queue, location sharing
-- **✊ Activism** - I2P routing, duress password, dead man's switch
-- **🏢 Corporate** - 2FA, geofencing, security audit tools
-- **🎖️ Military** - Multi-hop relay, satellite, PFS
-- **🏥 Healthcare** - HIPAA compliance, encrypted backups, audit trails
-- **💰 Finance** - Low-latency P2P, webhooks, templates
+- **🎓 College/Campus** - Bypass restrictive firewalls using Tor/I2P or P2P mesh networking.
+- **🏕️ Off-Grid/Camping** - Communicate when there is no cell service using LoRa or Bluetooth mesh.
+- **🎤 Journalism** - Protect anonymous sources with potential deniability and hidden services.
+- **👥 Remote Teams** - Secure, encrypted group chat for sensitive project discussions.
+- **🚨 Disaster Response** - Coordinate rescue efforts when infrastructure is down using LoRa/Satellite.
+- **✊ Activism & Protests** - Organize safely in high-risk environments with panic buttons and duress passwords.
+- **🏢 Corporate Security** - Internal secure communication channels with strict audit logs.
+- **🏥 Healthcare/HIPAA** - Share patient data securely with end-to-end encryption.
+- **💰 High-Value Finance** - Discuss transactions securely without fear of interception.
 
 **[See all use cases →](wiki/Use-Cases)**
 
@@ -272,6 +295,11 @@ omnishell timeline
 ```
 
 ---
+
+## 🛡️ Tactical Capabilities
+
+OmniShell includes a suite of "Default Off" features for Electronic Warfare and Physical Security.
+**[View Full Tactical Feature Documentation](FEATURES.md)**
 
 ## 🤝 Contributing
 

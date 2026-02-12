@@ -16,6 +16,11 @@
 use colored::Colorize;
 use crate::error::Result;
 
+pub mod sigint;
+pub mod sentry;
+pub mod hydra;
+pub mod hunter;
+
 /// Screenshot detection
 pub async fn enable_screenshot_detection() -> Result<()> {
     println!("{} Enabling screenshot detection...", "→".cyan());
