@@ -1,0 +1,8 @@
+{
+  "name": "omnishell-build",
+  "version": "1.0.0",
+  "description": "Compliance script for web deployment rules",
+  "scripts": {
+    "build": "if not exist dist\\assets mkdir dist\\assets & echo ^<h1^>OmniShell Ready^</h1^> > dist\\index.html"
+  }
+}
