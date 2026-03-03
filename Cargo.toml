@@ -50,6 +50,9 @@ sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "macros"
 quinn = "0.10"  # QUIC protocol
 tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1.5"
+btleplug = "0.11"
+futures = "0.3"
+tokio-stream = "0.1"
 
 # QR Code
 qrcode = "0.13"

@@ -111,51 +111,45 @@ pub fn receive_fragment(fragment: MTAFragment) -> Result<Option<Vec<u8>>> {
     Ok(None)
 }
 
-/// Send a message using Multipath Transport Aggregation
+// Multipath Transport Aggregation (MTA) Router
+use colored::Colorize;
+
+use crate::error::Result;
+use crate::ui::output;
+
+/// Send a message using Autonomous Transport Layer (MTA)
 pub async fn send_mta_message(recipient: &str, message: &str) -> Result<()> {
     println!("{}", "╔════════════════════════════════════════════════════════════════╗".cyan());
-    println!("{}", "║          MULTIPATH TRANSPORT AGGREGATION (MTA)                 ║".cyan());
+    println!("{}", "║          AUTONOMOUS TRANSPORT LAYER (MTA) ROUTER               ║".cyan());
     println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
     println!();
 
-    println!("{} Preparing message for multipath transmission...", "→".cyan());
+    println!("{} Analyzing network topology for best route to {}...", "→".cyan(), recipient);
+    output::show_encryption_animation("Calculating offline transport paths", 30).await;
     
-    // Fragment the message
-    let fragments = fragment_message(message.as_bytes());
-    println!("  └─ Split into {} fragments", fragments.len());
+    // Attempt 1: High-Bandwidth Wi-Fi Direct / LAN TCP
+    println!("{} Attempting High-Bandwidth Wi-Fi Direct...", "1️⃣".cyan());
+    if let Ok(_) = crate::network::p2p::send_p2p_message(recipient, message.as_bytes().to_vec()).await {
+        println!("{} MTA Routing Successful: High-Bandwidth Path Selected", "✓".green().bold());
+        return Ok(());
+    } else {
+        println!("{} Wi-Fi Direct unreachable. Failing over...", "x".red());
+    }
     
-    // Available protocols (in a real app, check availability)
-    let protocols = vec!["Tor", "I2P", "LoRa", "Bluetooth", "P2P"];
-    
-    output::show_encryption_animation("Distributing fragments across mesh", 100).await;
-    
-    // Distribute fragments
-    let mut rng = rand::thread_rng();
-    
-    for fragment in fragments {
-        // Randomly select a protocol for this fragment (Simulating load balancing)
-        let protocol = protocols[rng.gen_range(0..protocols.len())];
-        
-        println!("{} Sending Chunk {}/{} via {}", 
-            "🚀".cyan(),
-            fragment.chunk_id + 1,
-            fragment.total_chunks,
-            protocol.magenta().bold()
-        );
-        
-        // In a real implementation, we would call the specific protocol's send function here
-        // e.g. crate::network::tor::send_chunk(...)
-        
-        // Simulating network latency variance
-        tokio::time::sleep(std::time::Duration::from_millis(rng.gen_range(50..200))).await;
+    // Attempt 2: Low-Level BLE Mesh Hardware Route
+    println!();
+    println!("{} Initiating BLE Mesh Failover...", "2️⃣".cyan());
+    if let Ok(_) = crate::network::bluetooth::send_via_bluetooth(recipient, message).await {
+        println!("{} MTA Routing Successful: BLE Mesh Path Selected", "✓".green().bold());
+        return Ok(());
+    } else {
+        println!("{} BLE Mesh unreachable or disabled.", "x".red());
     }
     
     println!();
-    println!("{} Message successfully distributed across {} protocols", "✓".green().bold(), protocols.len());
-    println!("  └─ Fragments: {}", fragments.len());
-    println!("  └─ Redundancy: High");
-    println!("  └─ Interception Difficulty: Extreme");
-    println!();
+    println!("{} All autonomous transport layers failed to reach target.", "❌".red().bold());
+    println!("  └─ Device may be completely out of range or offline.");
     
-    Ok(())
+    anyhow::bail!("MTA Routing failed to find an offline path");
 }
+

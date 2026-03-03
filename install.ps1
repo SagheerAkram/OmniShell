@@ -8,44 +8,11 @@ Write-Host "           OmniShell Installation Script                        " -F
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check for Tor
-Write-Host "-> Checking for Tor..." -ForegroundColor Cyan
-if (Get-Command tor -ErrorAction SilentlyContinue) {
-    Write-Host "[OK] Tor found" -ForegroundColor Green
-} else {
-    Write-Host "[!] Tor not found. Installing..." -ForegroundColor Yellow
-    
-    $torUrl = "https://www.torproject.org/dist/torbrowser/13.0.9/tor-expert-bundle-13.0.9-windows-x86_64.tar.gz"
-    $torZip = "$env:TEMP\tor-expert.tar.gz"
-    $torDir = "$env:USERPROFILE\.omnishell\tor-bin"
-    
-    # Download Tor
-    Invoke-WebRequest -Uri $torUrl -OutFile $torZip
-    
-    # Extract
-    New-Item -ItemType Directory -Force -Path $torDir | Out-Null
-    tar -xf $torZip -C $torDir
-    
-    # Add to PATH (persistent)
-    $binPath = "$torDir\tor\src"
-    [Environment]::SetEnvironmentVariable(
-        "Path",
-        [Environment]::GetEnvironmentVariable("Path", "User") + ";$binPath",
-        "User"
-    )
-    $env:Path += ";$binPath"
-    
-    Write-Host "[OK] Tor installed to $binPath" -ForegroundColor Green
-}
-
-# Check for I2P
-Write-Host "-> Checking for I2P..." -ForegroundColor Cyan
-if (Get-Command i2prouter -ErrorAction SilentlyContinue) {
-     Write-Host "[OK] I2P found" -ForegroundColor Green
-} else {
-    Write-Host "[!] I2P not found. Please install from https://geti2p.net/en/download" -ForegroundColor Yellow
-} 
+# OmniShell utilizes true offline Mesh networking (BLE & Wi-Fi Direct).
+# No external router daemons (like Tor/I2P) are required!
+Write-Host "-> Initializing native router-less environment..." -ForegroundColor Cyan
 Write-Host ""
+
 
 # Check for Visual Studio Build Tools
 Write-Host "-> Checking for Visual Studio Build Tools..." -ForegroundColor Cyan
@@ -60,8 +27,33 @@ if (-not (Test-Path $vsWhere)) {
     if ($continue -ne "y") {
         exit 1
     }
-} else {
+}
+else {
     Write-Host "[OK] Visual Studio Build Tools found" -ForegroundColor Green
+}
+Write-Host ""
+
+# Check for Rust/Cargo
+Write-Host "-> Checking for Rust (Cargo)..." -ForegroundColor Cyan
+if (Get-Command cargo -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Cargo found" -ForegroundColor Green
+}
+else {
+    Write-Host "[!] Cargo not found. Installing Rust..." -ForegroundColor Yellow
+    $rustupExe = "$env:TEMP\rustup-init.exe"
+    Invoke-WebRequest -Uri "https://win.rustup.rs" -OutFile $rustupExe
+    Write-Host "Running Rust installer (this may take a minute)..." -ForegroundColor Cyan
+    & $rustupExe -y --default-toolchain stable --profile minimal
+    
+    # Add cargo to current session path temporarily to allow build
+    $env:Path += ";$env:USERPROFILE\.cargo\bin"
+    if (Get-Command cargo -ErrorAction SilentlyContinue) {
+        Write-Host "[OK] Rust/Cargo installed successfully" -ForegroundColor Green
+    }
+    else {
+        Write-Host "[ERROR] Failed to install Rust" -ForegroundColor Red
+        exit 1
+    }
 }
 Write-Host ""
 
@@ -71,7 +63,8 @@ cargo build --release
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "[OK] Build complete" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "[ERROR] Build failed" -ForegroundColor Red
     exit 1
 }
@@ -98,7 +91,8 @@ if ($currentPath -notlike "*$installDir*") {
     $env:Path += ";$installDir"
     Write-Host "[OK] Added to PATH" -ForegroundColor Green
     Write-Host "[!] Please restart your terminal for PATH changes to take effect" -ForegroundColor Yellow
-} else {
+}
+else {
     Write-Host "[OK] Already in PATH" -ForegroundColor Green
 }
 Write-Host ""
