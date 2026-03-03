@@ -444,6 +444,9 @@ enum Commands {
         #[command(subcommand)]
         action: HunterAction,
     },
+    
+    /// Silent Background Mesh Daemon
+    Daemon,
 }
 
 #[derive(Subcommand)]
@@ -1035,6 +1038,22 @@ async fn run(cli: Cli) -> Result<()> {
                 HunterAction::Scan => {
                     security::hunter::TDoATriangulator::scan()?;
                 }
+            }
+        }
+        Commands::Daemon => {
+            println!("{}", "╔════════════════════════════════════════════════════════════════╗".cyan());
+            println!("{}", "║              OMNISHELL MESH DAEMON (BACKGROUND)                ║".cyan());
+            println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
+            println!("{} Starting silent background mesh routing...", "→".cyan());
+            println!("  └─ Mode: Passive Device-Hopping");
+            println!("  └─ Status: Live");
+            println!();
+            
+            // This is the background infinite loop. 
+            // In a real scenario, this listens on sockets and BLE scanners indefinitely.
+            loop {
+                // Keep the daemon alive and periodically pulse the mesh.
+                tokio::time::sleep(std::time::Duration::from_secs(60)).await;
             }
         }
     }

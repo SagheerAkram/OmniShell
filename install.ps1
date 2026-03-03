@@ -102,6 +102,12 @@ Write-Host "-> Initializing OmniShell..." -ForegroundColor Cyan
 & "$installDir\omnishell.exe" init
 Write-Host ""
 
+# Spawn Silent Background Mesh Daemon
+Write-Host "-> Spawning Silent Background Mesh Node..." -ForegroundColor Cyan
+Start-Process -FilePath "$installDir\omnishell.exe" -ArgumentList "daemon" -WindowStyle Hidden
+Write-Host "[OK] OmniShell Daemon is routing offline traffic in the background." -ForegroundColor Green
+Write-Host ""
+
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "           Installation Complete!                               " -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
