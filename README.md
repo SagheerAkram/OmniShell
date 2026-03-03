@@ -75,47 +75,16 @@
 
 ### Installation
 
-#### Option 1: Automated Install (Recommended)
+The fastest way to install and run the OmniShell interactive dashboard is using Cargo (Rust's package manager).
 
 ```bash
-# Windows
-powershell -ExecutionPolicy Bypass -File install.ps1
-
-# Linux/macOS
-chmod +x install.sh
-./install.sh
+# Clone the repository and run immediately
+git clone https://github.com/SagheerAkram/OmniShell.git
+cd OmniShell
+cargo run --release
 ```
 
-The install script will:
-- Install required dependencies (Tor, I2P, etc.)
-- Build the release binary
-- Copy `omnishell.exe` to your system
-- Add it to your PATH
-- Make it available system-wide
-
-#### Option 2: Manual Build
-
-```bash
-# Build from source
-cargo build --release
-
-# Copy to project root for easy access
-cp target/release/omnishell.exe omnishell.exe  # Windows
-cp target/release/omnishell ./omnishell        # Linux/macOS
-
-# Run from project directory
-./omnishell init
-```
-
-#### Option 3: Add to PATH Manually
-
-```powershell
-# Windows PowerShell (run as Administrator)
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\path\to\OmniShell", [EnvironmentVariableTarget]::User)
-
-# Then restart PowerShell and use:
-omnishell init
-```
+This single command will compile the executable and launch the **Tactical Interface Dashboard** automatically, giving you access to the background nodes, Sonar audio modems, and stealth messaging features without any configuration required.
 
 ### First Commands
 
