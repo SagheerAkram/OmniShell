@@ -480,6 +480,8 @@ enum SonarAction {
     },
     /// Listen for ultrasonic signals
     Listen,
+    /// Run local loopback test (transmit & receive on same machine)
+    Test,
 }
 
 #[derive(Subcommand)]
@@ -971,6 +973,9 @@ async fn run(cli: Cli) -> Result<()> {
                 }
                 SonarAction::Listen => {
                     network::sonar::AudioModem::listen()?;
+                }
+                SonarAction::Test => {
+                    network::sonar::AudioModem::run_test()?;
                 }
             }
         }

@@ -134,6 +134,29 @@ impl AudioModem {
         println!("Done.");
         Ok(())
     }
+
+    /// Run local loopback test
+    pub fn run_test() -> Result<()> {
+        println!("{}", "🔄 Starting Sonar Loopback Test...".cyan());
+        
+        let msg = "PING";
+        
+        // Spawn listener in background
+        let listener_thread = std::thread::spawn(|| {
+            let _ = Self::listen();
+        });
+        
+        // Wait 2 secs for listener to initialize
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        
+        // Transmit
+        Self::transmit(msg)?;
+        
+        // Let listener catch it
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        
+        Ok(())
+    }
 }
 
 fn string_to_bits(s: &str) -> Vec<bool> {
