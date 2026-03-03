@@ -353,6 +353,71 @@ async fn read_all_unread(pool: &SqlitePool) -> Result<()> {
     Ok(())
 }
 
+/// Retrieve the current count of unread messages globally
+pub async fn get_unread_count() -> Result<i64> {
+    let storage = Storage::new().await?;
+    let pool = storage.pool();
+    let unread_count: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM messages WHERE direction = 'received' AND status != 'read'"
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(unread_count.0)
+}
+
+/// Stealthily read all unread messages without triggering read receipts
+pub async fn stealth_read_unread_all() -> Result<()> {
+    let storage = Storage::new().await?;
+    let pool = storage.pool();
+    
+    let unread_msgs: Vec<StoredMessage> = sqlx::query_as(
+        "SELECT id, contact_id, direction, content_encrypted, timestamp, protocol, status, message_id, reply_to, edited_at, deleted_at FROM messages WHERE direction = 'received' AND status != 'read' ORDER BY timestamp ASC"
+    )
+    .fetch_all(pool)
+    .await?;
+    
+    if unread_msgs.is_empty() {
+        println!("{}", "No unread messages currently.".yellow());
+        return Ok(());
+    }
+    
+    println!("{}", "╔════════════════════════════════════════════════════════════════╗".cyan());
+    println!("{}", "║                   STEALTH READ (UNREAD MESSAGES)               ║".cyan());
+    println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
+    println!();
+    
+    let our_keypair = get_keypair()?;
+    
+    for stored_msg in unread_msgs {
+        let contact: (String, String) = sqlx::query_as("SELECT name, fingerprint FROM contacts WHERE id = ?")
+            .bind(stored_msg.contact_id)
+            .fetch_one(pool)
+            .await?;
+            
+        let contact_name = contact.0;
+        let recipient_pubkey = get_contact_public_key(&contact_name).await?;
+        let shared_key = crate::crypto::encryption::derive_shared_key(
+            &our_keypair.to_bytes(),
+            &recipient_pubkey.to_bytes(),
+        )?;
+        
+        // Decrypt
+        let encrypted: EncryptedMessage = bincode::deserialize(&stored_msg.content_encrypted)?;
+        let decrypted_bytes = decrypt_message(&encrypted, &shared_key)?;
+        let msg: Message = serde_json::from_slice(&decrypted_bytes)?;
+        
+        let timestamp_str = output::format_timestamp(msg.timestamp);
+        let prefix = format!("[{}] {}:", timestamp_str, contact_name).bright_blue();
+        
+        println!("{}", prefix);
+        println!("  {}", msg.content);
+        println!();
+    }
+    
+    println!("{}", "Reading completed in stealth mode. Messages remain 'unread' globally.".cyan());
+    Ok(())
+}
+
 fn select_protocol(forced: &Option<String>, priority: &str, stealth: bool) -> Result<String> {
     if let Some(protocol) = forced {
         return Ok(protocol.clone());

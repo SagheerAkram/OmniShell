@@ -97,7 +97,7 @@ impl AudioModem {
     }
 
     /// Listen for ultrasonic signals
-    pub fn listen() -> Result<()> {
+    pub fn listen() -> Result<String> {
         println!("{} Activating Microphone DSP for Ultrasonic Listening...", "👂".magenta());
         
         let host = cpal::default_host();
@@ -105,7 +105,6 @@ impl AudioModem {
              Some(d) => d,
             None => {
                 println!("{}", "❌ No audio input device found. Cannot listen.".red());
-                return Ok(());
             }
         };
         
@@ -113,8 +112,21 @@ impl AudioModem {
         let _fft = planner.plan_fft_forward(1024);
         
         println!("🎧 High-Frequency FFT analyzer running in background...");
-        println!("Listening on 18kHz-19kHz band... (Press Ctrl+C to stop)");
+        println!("Listening on 18kHz-19kHz band... (Press Ctrl+C to abort)");
+        println!("{} {}", "[SIMULATION]".yellow(), "If DSP is unavailable or you are testing, paste the 'omni:...' payload below to simulate receiving it over audio:");
         
+        // Simulation / Fallback for experimentation
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input).unwrap();
+        let payload = input.trim();
+        
+        if payload.starts_with("omni:") {
+            return Ok(payload.to_string());
+        } else if payload.is_empty() {
+            return Err(anyhow::anyhow!("Aborted listening"));
+        }
+        
+        // Loop fallback
         loop {
             // Buffer -> FFT -> magnitude detection mock loop
             std::thread::sleep(std::time::Duration::from_secs(1));
@@ -132,6 +144,7 @@ impl AudioModem {
         }
         println!();
         println!("Done.");
+        println!("{}", format!("(For testing, receiver can copy this payload: {})", message).bright_black());
         Ok(())
     }
 
