@@ -1054,11 +1054,26 @@ async fn run(cli: Cli) -> Result<()> {
             println!("  └─ Status: Live");
             println!();
             
-            // This is the background infinite loop. 
-            // In a real scenario, this listens on sockets and BLE scanners indefinitely.
+            // Start Wi-Fi Direct / LAN P2P Server
+            if let Err(e) = network::p2p::start_listener(None).await {
+                println!("{} Failed to start Wi-Fi Direct listener: {}", "x".red(), e);
+            }
+
+            // Initialize Bluetooth Mesh
+            let _ = network::bluetooth::init_bluetooth().await;
+
+            // Start Ultrasonic Listener (Sonar)
+            if features::is_enabled("sonar") {
+                std::thread::spawn(|| {
+                    let _ = network::sonar::AudioModem::listen();
+                });
+            }
+
+            // Background infinite loop for BLE Mesh maintenance
             loop {
-                // Keep the daemon alive and periodically pulse the mesh.
-                tokio::time::sleep(std::time::Duration::from_secs(60)).await;
+                // Periodically check for new peers via BLE
+                let _ = network::bluetooth::scan_bluetooth_devices().await;
+                tokio::time::sleep(std::time::Duration::from_secs(45)).await;
             }
         }
     }
