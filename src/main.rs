@@ -46,7 +46,7 @@ use ui::output;
 #[command(about = "Advanced P2P encrypted messaging CLI with military-grade security", long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -687,100 +687,100 @@ async fn main() {
 
 async fn run(cli: Cli) -> Result<()> {
     match cli.command {
-        Commands::Init { force } => {
+        Some(Commands::Init { force }) => {
             identity::init(force).await?;
         }
-        Commands::Whoami => {
+        Some(Commands::Whoami) => {
             identity::whoami().await?;
         }
-        Commands::Add { name, public_key, scan, nearby } => {
+        Some(Commands::Add { name, public_key, scan, nearby }) => {
             contacts::add(name, public_key, scan, nearby).await?;
         }
-        Commands::List { online } => {
+        Some(Commands::List { online }) => {
             contacts::list(online).await?;
         }
-        Commands::Info { contact } => {
+        Some(Commands::Info { contact }) => {
             contacts::info(&contact).await?;
         }
-        Commands::Verify { contact } => {
+        Some(Commands::Verify { contact }) => {
             contacts::verify(&contact).await?;
         }
-        Commands::Remove { contact, delete_history } => {
+        Some(Commands::Remove { contact, delete_history }) => {
             contacts::remove(&contact, delete_history).await?;
         }
-        Commands::Msg { recipient, message, protocol, priority, ttl, stealth } => {
+        Some(Commands::Msg { recipient, message, protocol, priority, ttl, stealth }) => {
             messaging::send_message(recipient, message, protocol, priority, ttl, stealth).await?;
         }
-        Commands::Read { contact, last, since, unread } => {
+        Some(Commands::Read { contact, last, since, unread }) => {
             messaging::read_messages(contact, last, since, unread).await?;
         }
-        Commands::Reply { message_id, message } => {
+        Some(Commands::Reply { message_id, message }) => {
             messaging::reply_message(&message_id, message).await?;
         }
-        Commands::Edit { message_id, message } => {
+        Some(Commands::Edit { message_id, message }) => {
             messaging::edit_message(&message_id, message).await?;
         }
-        Commands::Delete { message_id, for_everyone } => {
+        Some(Commands::Delete { message_id, for_everyone }) => {
             messaging::delete_message(&message_id, for_everyone).await?;
         }
-        Commands::Forward { message_id, recipient, strip_metadata } => {
+        Some(Commands::Forward { message_id, recipient, strip_metadata }) => {
             messaging::forward_message(&message_id, recipient, strip_metadata).await?;
         }
-        Commands::React { message_id, emoji } => {
+        Some(Commands::React { message_id, emoji }) => {
             messaging::react_message(&message_id, emoji).await?;
         }
-        Commands::Unreact { message_id } => {
+        Some(Commands::Unreact { message_id }) => {
             messaging::unreact_message(&message_id).await?;
         }
-        Commands::Star { message_id } => {
+        Some(Commands::Star { message_id }) => {
             messaging::star_message(&message_id).await?;
         }
-        Commands::Unstar { message_id } => {
+        Some(Commands::Unstar { message_id }) => {
             messaging::unstar_message(&message_id).await?;
         }
-        Commands::Starred => {
+        Some(Commands::Starred) => {
             messaging::list_starred().await?;
         }
-        Commands::Search { query, contact, date } => {
+        Some(Commands::Search { query, contact, date }) => {
             messaging::search_messages(query, contact, date).await?;
         }
-        Commands::Send { recipient, file, compress } => {
+        Some(Commands::Send { recipient, file, compress }) => {
             files::send_file(recipient, file, compress).await?;
         }
-        Commands::Transfers => {
+        Some(Commands::Transfers) => {
             files::list_transfers().await?;
         }
-        Commands::Image { recipient, image } => {
+        Some(Commands::Image { recipient, image }) => {
             files::send_image(recipient, image).await?;
         }
-        Commands::Help { command } => {
+        Some(Commands::Help { command }) => {
             show_help(command);
         }
-        Commands::Stats => {
+        Some(Commands::Stats) => {
             show_stats().await?;
         }
-        Commands::Version => {
+        Some(Commands::Version) => {
             show_version();
         }
-        Commands::Backup { output, password } => {
+        Some(Commands::Backup { output, password }) => {
             backup::create_backup(output, password).await?;
         }
-        Commands::Restore { backup, password } => {
+        Some(Commands::Restore { backup, password }) => {
             backup::restore_backup(backup, password).await?;
         }
-        Commands::Export { output } => {
+        Some(Commands::Export { output }) => {
             backup::export_contacts(output).await?;
         }
-        Commands::Import { input } => {
+        Some(Commands::Import { input }) => {
             backup::import_contacts(input).await?;
         }
-        Commands::RotateKeys => {
+        Some(Commands::RotateKeys) => {
             backup::rotate_keys().await?;
         }
-        Commands::Cleanup { days, dry_run } => {
+        Some(Commands::Cleanup { days, dry_run }) => {
             backup::cleanup(days, dry_run).await?;
         }
-        Commands::Group { action } => {
+        Some(Commands::Group { action }) => {
             match action {
                 GroupAction::Create { name, members } => {
                     groups::create_group(name, members).await?;
@@ -802,10 +802,10 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Status => {
+        Some(Commands::Status) => {
             network::show_status().await?;
         }
-        Commands::Config { action } => {
+        Some(Commands::Config { action }) => {
             match action {
                 Some(ConfigAction::Set { key, value }) => {
                     config::set(&key, &value).await?;
@@ -818,20 +818,20 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Queue { action } => {
+        Some(Commands::Queue { action }) => {
             match action {
                 QueueAction::List => queue::show_queue().await?,
                 QueueAction::Process => queue::process_queue().await?,
                 QueueAction::Clear => queue::clear_queue().await?,
             }
         }
-        Commands::Emergency { message } => {
+        Some(Commands::Emergency { message }) => {
             emergency::emergency_broadcast(message).await?;
         }
-        Commands::Panic => {
+        Some(Commands::Panic) => {
             emergency::panic_mode().await?;
         }
-        Commands::Deadman { action } => {
+        Some(Commands::Deadman { action }) => {
             match action {
                 DeadmanAction::Setup => emergency::setup_deadman_switch(24, "panic".to_string()).await?,
                 DeadmanAction::Status => {
@@ -841,14 +841,14 @@ async fn run(cli: Cli) -> Result<()> {
                 DeadmanAction::Disable => emergency::reset_deadman_switch().await?,
             }
         }
-        Commands::Tor { action } => {
+        Some(Commands::Tor { action }) => {
             match action {
                 TorAction::Start => network::tor::start_tor().await?,
                 TorAction::Stop => network::tor::stop_tor().await?,
                 TorAction::Status => network::tor::tor_status().await?,
             }
         }
-        Commands::I2p { action } => {
+        Some(Commands::I2p { action }) => {
             match action {
                 I2pAction::Start => network::i2p::init_i2p().await?,
                 I2pAction::Stop => {
@@ -857,38 +857,38 @@ async fn run(cli: Cli) -> Result<()> {
                 I2pAction::Status => network::i2p::i2p_status().await?,
             }
         }
-        Commands::Lora { action } => {
+        Some(Commands::Lora { action }) => {
             match action {
                 LoraAction::Status => network::lora::lora_status().await?,
                 LoraAction::Scan => network::lora::scan_lora_nodes().await?,
             }
         }
-        Commands::Bluetooth { action } => {
+        Some(Commands::Bluetooth { action }) => {
             match action {
                 BluetoothAction::Status => network::bluetooth::bluetooth_status().await?,
                 BluetoothAction::Scan => network::bluetooth::scan_bluetooth_devices().await?,
             }
         }
-        Commands::Sms { action } => {
+        Some(Commands::Sms { action }) => {
             match action {
                 SmsAction::Send { recipient, message } => {
                     network::alternative::send_via_sms(&recipient, &message).await?;
                 }
             }
         }
-        Commands::Satellite { action } => {
+        Some(Commands::Satellite { action }) => {
             match action {
                 SatelliteAction::Status => network::alternative::satellite_status().await?,
             }
         }
-        Commands::Plugin { action } => {
+        Some(Commands::Plugin { action }) => {
             match action {
                 PluginAction::List => plugins::list_plugins().await?,
                 PluginAction::Install { name } => plugins::install_plugin(name).await?,
                 PluginAction::Remove { name } => plugins::uninstall_plugin(name).await?,
             }
         }
-        Commands::Api { action } => {
+        Some(Commands::Api { action }) => {
             match action {
                 ApiAction::Start => api::start_api_server().await?,
                 ApiAction::Stop => {
@@ -901,16 +901,16 @@ async fn run(cli: Cli) -> Result<()> {
                 },
             }
         }
-        Commands::Test => {
+        Some(Commands::Test) => {
             testing::run_tests().await?;
         }
-        Commands::Benchmark => {
+        Some(Commands::Benchmark) => {
             testing::run_benchmarks().await?;
         }
-        Commands::Audit => {
+        Some(Commands::Audit) => {
             testing::security_audit().await?;
         }
-        Commands::Experimental { action } => {
+        Some(Commands::Experimental { action }) => {
             match action {
                 Some(ExperimentalAction::List) => experimental::show_experimental_features().await?,
                 Some(ExperimentalAction::Enable { feature }) => {
@@ -919,7 +919,7 @@ async fn run(cli: Cli) -> Result<()> {
                 None => experimental::show_experimental_features().await?,
             }
         }
-        Commands::Tactical => {
+        Some(Commands::Tactical) => {
             if !features::is_enabled("passive_sigint") && !features::is_enabled("sentry_mode") {
                  // warning but allow dashboard
             }
@@ -934,7 +934,7 @@ async fn run(cli: Cli) -> Result<()> {
             // Run TUI dashboard
             ui::dashboard::run_dashboard().await?;
         }
-        Commands::Sentry { arm } => {
+        Some(Commands::Sentry { arm }) => {
             if !features::is_enabled("sentry_mode") {
                 println!("{}", "Feature 'sentry_mode' is disabled in features.toml".red());
                 return Ok(());
@@ -946,7 +946,7 @@ async fn run(cli: Cli) -> Result<()> {
                 println!("Use --arm to activate Sentry Mode");
             }
         }
-        Commands::Hydra { action } => {
+        Some(Commands::Hydra { action }) => {
             if !features::is_enabled("the_hydra") {
                 println!("{}", "Feature 'the_hydra' is disabled in features.toml".red());
                 return Ok(());
@@ -961,7 +961,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Sonar { action } => {
+        Some(Commands::Sonar { action }) => {
             if !features::is_enabled("sonar") {
                 println!("{}", "Feature 'sonar' is disabled in features.toml".red());
                 return Ok(());
@@ -979,7 +979,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Mirage { action } => {
+        Some(Commands::Mirage { action }) => {
             if !features::is_enabled("mirage") {
                 println!("{}", "Feature 'mirage' is disabled in features.toml".red());
                 return Ok(());
@@ -992,7 +992,7 @@ async fn run(cli: Cli) -> Result<()> {
             };
             ui::mirage::start_mirage(mode)?;
         }
-        Commands::Mole { action } => {
+        Some(Commands::Mole { action }) => {
             if !features::is_enabled("the_mole") {
                 println!("{}", "Feature 'the_mole' is disabled in features.toml".red());
                 return Ok(());
@@ -1007,7 +1007,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Agility { action } => {
+        Some(Commands::Agility { action }) => {
             if !features::is_enabled("spectrum_agility") {
                 println!("{}", "Feature 'spectrum_agility' is disabled in features.toml".red());
                 return Ok(());
@@ -1020,7 +1020,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Ghost { action } => {
+        Some(Commands::Ghost { action }) => {
             if !features::is_enabled("ghost_reckoning") {
                 println!("{}", "Feature 'ghost_reckoning' is disabled in features.toml".red());
                 return Ok(());
@@ -1033,7 +1033,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Hunter { action } => {
+        Some(Commands::Hunter { action }) => {
             if !features::is_enabled("hunter_mode") {
                 println!("{}", "Feature 'hunter_mode' is disabled in features.toml".red());
                 return Ok(());
@@ -1045,7 +1045,7 @@ async fn run(cli: Cli) -> Result<()> {
                 }
             }
         }
-        Commands::Daemon => {
+        Some(Commands::Daemon) => {
             println!("{}", "╔════════════════════════════════════════════════════════════════╗".cyan());
             println!("{}", "║              OMNISHELL MESH DAEMON (BACKGROUND)                ║".cyan());
             println!("{}", "╚════════════════════════════════════════════════════════════════╝".cyan());
