@@ -7,7 +7,7 @@ pub mod bluetooth;
 pub mod alternative; // SMS & Satellite
 pub mod relay; // Relay node system
 pub mod mta; // Multipath Transport Aggregation
-
+pub mod sonar; // Ultrasonic Air-Gap Bridge
 // Re-export main functions
 
 use colored::Colorize;

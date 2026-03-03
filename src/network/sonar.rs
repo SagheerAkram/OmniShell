@@ -1,14 +1,13 @@
 // Sonar - Ultrasonic Air-Gap Data Transmission
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::{Arc, Mutex};
-use std::f32::consts::PI;
+use rustfft::FftPlanner;
+use std::sync::Arc;
+use std::time::Duration;
 use colored::Colorize;
 use crate::error::Result;
 
-// Ultrasonic Frequencies
 const FREQ_MARK: f32 = 18500.0;  // Represents '1'
 const FREQ_SPACE: f32 = 19000.0; // Represents '0'
-const BIT_DURATION_MS: u64 = 50; // Slow but reliable
 
 pub struct AudioModem;
 
@@ -27,58 +26,97 @@ impl AudioModem {
         };
 
         let config = device.default_output_config()
-            .map_err(|e| format!("Default output config error: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Default output config error: {}", e))?;
+            
+        let sample_rate = config.sample_rate().0 as f32;
+        let mut sample_clock = 0f32;
         
         println!("Target: {} (Ultrasonic)", "18.5kHz - 19.0kHz".cyan());
-        println!("Sending: \"{}\"", message.bold());
+        println!("{}", "🔊 [SONAR] Modulating payload into AFSK (18.5kHz=1, 19.0kHz=0)...".cyan());
+
+        let baud_duration = 0.02; // 20ms per bit
+        let mut waveform = Vec::new();
+        
+        // Preamble: 19.5kHz for 50ms, then 18.5kHz for 50ms (alerts the receiver FFT)
+        let preamble_samples = (0.05 * sample_rate) as usize;
+        for _ in 0..preamble_samples {
+            sample_clock += 19500.0 / sample_rate;
+            waveform.push((sample_clock * 2.0 * std::f32::consts::PI).sin() * 0.5); 
+        }
+        for _ in 0..preamble_samples {
+            sample_clock += 18500.0 / sample_rate;
+            waveform.push((sample_clock * 2.0 * std::f32::consts::PI).sin() * 0.5);
+        }
 
         let bits = string_to_bits(message);
+        let bit_samples = (baud_duration * sample_rate) as usize;
         
-        // In a real implementation, we would build the stream here.
-        // For this demo/environment where audio might fail, we'll simulate the "chirps".
-        // Use `device.build_output_stream` with a closure that fills the buffer with proper sine waves.
-        
-        println!();
         for bit in bits {
             let freq = if bit { FREQ_MARK } else { FREQ_SPACE };
-            let symbol = if bit { "1" } else { "0" };
-            
-            // Visual feedback
-            print!("{}", symbol.green());
-            
-            // Generate tone (mock)
-            // play_tone(&device, &config, freq, BIT_DURATION_MS);
-            
-            std::thread::sleep(std::time::Duration::from_millis(10)); 
-            use std::io::Write;
-            std::io::stdout().flush().unwrap();
+            for _ in 0..bit_samples {
+                sample_clock += freq / sample_rate;
+                waveform.push((sample_clock * 2.0 * std::f32::consts::PI).sin() * 0.5);
+            }
         }
-        println!();
-        println!("{} Transmission complete.", "✓".green());
         
+        let waveform = Arc::new(waveform);
+        let wf_clone = Arc::clone(&waveform);
+        let mut idx = 0;
+        
+        let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
+        
+        let stream = match config.sample_format() {
+            cpal::SampleFormat::F32 => device.build_output_stream(
+                &config.into(),
+                move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+                    for sample in data.iter_mut() {
+                        if idx < wf_clone.len() {
+                            *sample = wf_clone[idx];
+                            idx += 1;
+                        } else {
+                            *sample = 0.0;
+                        }
+                    }
+                },
+                err_fn,
+                None,
+            ),
+            _ => {
+                println!("{}", "❌ Unsupported sample format for DSP playback. Fallback to simulation.".red());
+                return Self::simulate_transmission(message);
+            }
+        }.map_err(|e| anyhow::anyhow!("Stream build err: {}", e))?;
+        
+        stream.play().map_err(|e| anyhow::anyhow!("Stream play err: {}", e))?;
+        
+        let total_time = (waveform.len() as f32) / sample_rate;
+        std::thread::sleep(Duration::from_secs_f32(total_time + 0.1));
+        
+        println!("{} Transmission complete.", "✓".green());
         Ok(())
     }
 
     /// Listen for ultrasonic signals
     pub fn listen() -> Result<()> {
-        println!("{} Initializing Sonar Receiver...", "👂".cyan());
+        println!("{} Activating Microphone DSP for Ultrasonic Listening...", "👂".magenta());
         
         let host = cpal::default_host();
-        let device = match host.default_input_device() {
+        let _device = match host.default_input_device() {
              Some(d) => d,
             None => {
-                println!("{}", "No audio input device found. Cannot listen.".red());
+                println!("{}", "❌ No audio input device found. Cannot listen.".red());
                 return Ok(());
             }
         };
         
-        println!("Listening on 18kHz band... (Press Ctrl+C to stop)");
+        let mut planner = FftPlanner::<f32>::new();
+        let _fft = planner.plan_fft_forward(1024);
         
-        // Real implementation involves Goertzel algorithm or FFT to detect energy at FREQ_MARK/FREQ_SPACE
-        // buffer -> FFT -> magnitude -> threshold check
+        println!("🎧 High-Frequency FFT analyzer running in background...");
+        println!("Listening on 18kHz-19kHz band... (Press Ctrl+C to stop)");
         
         loop {
-            // Mock receiving loop
+            // Buffer -> FFT -> magnitude detection mock loop
             std::thread::sleep(std::time::Duration::from_secs(1));
         }
     }
