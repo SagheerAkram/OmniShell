@@ -287,7 +287,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 - **GitHub**: [github.com/sagheerakram/omnishell](https://github.com/sagheerakram/omnishell)
 - **Issues**: [Report a bug](https://github.com/sagheerakram/omnishell/issues)
 - **Wiki**: [Complete Documentation](../../wiki)
-- **Security**: security@omnishell.dev
+- **Security**: omnishell@sagheerprojects.fun
 
 ---
 
